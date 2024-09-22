@@ -42,6 +42,50 @@ int verificarCPF(const char* cpf) {
     return 0;  // CPF não encontrado
 }
 
+//função para abrir o menu principal
+void menuPrincipal() {
+    int opcao;
+    do {
+        printf("\nMenu Principal:\n");
+        printf("1. Consultar saldo\n");
+        printf("2. Consultar extrato\n");
+        printf("3. Depositar\n");
+        printf("4. Sacar\n");
+        printf("5. Comprar criptomoedas\n");
+        printf("6. Vender criptomoedas\n");
+        printf("7. fechar programa\n");
+        printf("Digite a opção desejada: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                // Lógica para consultar saldo
+                break;
+            case 2:
+                // Lógica para consultar extrato
+                break;
+            case 3:
+                // Lógica para depositar
+                break;
+            case 4:
+                // Lógica para sacar
+                break;
+            case 5:
+                // Lógica para comprar criptomoedas
+                break;
+            case 6:
+                // Lógica para vender criptomoedas
+                break;
+            case 7:
+                printf("Encerrando o programa.\n");
+                break;
+            default:
+                printf("Opção inválida!\n");
+                break;
+        }
+    } while (opcao != 7);
+}
+
 // Função para verificar se o CPF e a senha estão corretos
 int verificarLogin(const char* cpf, const char* senha) {
     FILE *arquivo = fopen("usuarios.txt", "r");
@@ -55,6 +99,7 @@ int verificarLogin(const char* cpf, const char* senha) {
         sscanf(linha, "CPF: %s SENHA: %s", cpfArquivo, senhaArquivo);
         if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {  // Verifica CPF e senha
             fclose(arquivo);
+            menuPrincipal();
             return 1;  // Login bem-sucedido
         }
     }
@@ -132,6 +177,8 @@ int main() {
             cadastrarUsuario(cpf, senha);
             printf("Cadastrado com sucesso!\n");
             printf("Bem-vindo ao FEINANCE!\n");
+            menuPrincipal();
+            
         }
 
     } else {
