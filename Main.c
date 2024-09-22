@@ -53,7 +53,7 @@ void menuPrincipal() {
         printf("4. Sacar\n");
         printf("5. Comprar criptomoedas\n");
         printf("6. Vender criptomoedas\n");
-        printf("7. fechar programa\n");
+        printf("7. Fechar programa\n");
         printf("Digite a opção desejada: ");
         scanf("%d", &opcao);
 
@@ -172,7 +172,7 @@ int main() {
         } else {
             printf("Digite a senha: ");
             fgets(senha, sizeof(senha), stdin);
-            senha[strcspn(senha, "\n")] = '\0'; // o comando strcspn ajda a ver e garantir q o cpf utilizado nn possui cadastro, ent ele retira o "\n" para ver melhor 
+            senha[strcspn(senha, "\n")] = '\0'; // o comando strcspn ajuda a ver e garantir q o cpf utilizado nn possui cadastro, ent ele retira o "\n" para ver melhor 
 
             cadastrarUsuario(cpf, senha);
             printf("Cadastrado com sucesso!\n");
