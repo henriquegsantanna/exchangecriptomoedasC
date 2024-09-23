@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>  // Biblioteca responsavel para inserir o isdigit(), server para verificar se o q foi digitado, é numero ou string.
 #define LIMITE_CADASTROS 10
 
 // Função para contar o número de registros no arquivo
@@ -19,6 +20,16 @@ int ContarQuantCadastros() {
 
     fclose(arquivo);
     return contador;
+}
+
+// Função para verificar se o CPF contém apenas números
+int VarVerificarCPFnumero(const char* cpf) {
+    for (int i = 0; i < strlen(cpf); i++) {
+        if (!isdigit(cpf[i])) { // Verifica se o caractere não eh um digito string
+            return 0;  // Se encontrar qualquer caractere não numérico, retorna o erro
+        }
+    }
+    return 1;  // CPF válido (apenas números)
 }
 
 // Função para verificar se o CPF já está cadastrado
@@ -42,7 +53,7 @@ int verificarCPF(const char* cpf) {
     return 0;  // CPF não encontrado
 }
 
-//função para abrir o menu principal
+// Função para abrir o menu principal
 void menuPrincipal() {
     int opcao;
     do {
@@ -109,7 +120,7 @@ int verificarLogin(const char* cpf, const char* senha) {
 }
 
 // Função para cadastrar um novo CPF e senha
-void cadastrarUsuario(const char* cpf, const char* senha) {
+void CadastrarUsuario(const char* cpf, const char* senha) {
     FILE *arquivo = fopen("usuarios.txt", "a"); // Abre o arquivo para adicionar
 
     if (arquivo == NULL) {
@@ -125,66 +136,81 @@ void cadastrarUsuario(const char* cpf, const char* senha) {
 int main() {
     char cpf[20]; 
     char senha[50];
-    int opcao, cadastrosExistentes = ContarQuantCadastros();
+    int opcao, cadastrosExistentes;
 
-    printf("Bem-vindo ao FEINANCE!\n");
-    printf("Digite 1 para logar ou 2 para cadastrar um novo usuário: ");
-    scanf("%d", &opcao);
-    getchar();  // Consumir '\n' residual do scanf
+    while (1) {  // Loop principal que reinicia em caso de erro
+        cadastrosExistentes = ContarQuantCadastros();
+        printf("Bem-vindo ao FEINANCE!\n");
+        printf("Digite 1 para logar ou 2 para cadastrar um novo usuário: ");
+        scanf("%d", &opcao);
+        getchar();  // Consumir '\n' residual do scanf
 
-    if (opcao == 1) {
-        while (1) {  // Loop infinito para tentar login até sucesso ou saída
-            printf("Digite o CPF para login (ou 0 para cancelar): ");
-            fgets(cpf, sizeof(cpf), stdin);
-            cpf[strcspn(cpf, "\n")] = '\0'; 
+        if (opcao == 1) {
+            // Login
+            while (1) {  // Loop para tentativas de login
+                printf("Digite o CPF para login (somente números) (ou 0 para cancelar): ");
+                fgets(cpf, sizeof(cpf), stdin);
+                cpf[strcspn(cpf, "\n")] = '\0'; 
 
-            if (strcmp(cpf, "0") == 0) {
-                printf("Login cancelado.\n");
-                break;
+                if (strcmp(cpf, "0") == 0) {
+                    printf("Login cancelado.\n");
+                    break;
+                }
+
+                if (!VarVerificarCPFnumero(cpf)) {
+                    printf("CPF inválido! Digite apenas números.\n");
+                    continue;  // Volta para o início do loop de login
+                }
+
+                printf("Digite a senha: ");
+                fgets(senha, sizeof(senha), stdin);
+                senha[strcspn(senha, "\n")] = '\0';  
+
+                if (verificarLogin(cpf, senha)) {
+                    printf("Login bem-sucedido! Bem-vindo!\n");
+                    break; 
+                } else {
+                    printf("CPF ou senha incorretos. Tente novamente.\n");
+                }
             }
 
-            printf("Digite a senha: ");
-            fgets(senha, sizeof(senha), stdin);
-            senha[strcspn(senha, "\n")] = '\0';  
-
-            if (verificarLogin(cpf, senha)) {
-                printf("Login bem-sucedido! Bem-vindo!\n");
-                break; 
-            } else {
-                printf("CPF ou senha incorretos. Tente novamente.\n");
+        } else if (opcao == 2) {
+            // Cadastro
+            if (cadastrosExistentes >= LIMITE_CADASTROS) {
+                printf("O arquivo já contém o limite de %d cadastros.\n", LIMITE_CADASTROS);
+                continue;  // Volta para o início do loop principal
             }
-        }
 
-    } else if (opcao == 2) {
-        // Cadastro
-        if (cadastrosExistentes >= LIMITE_CADASTROS) {
-            printf("O arquivo já contém o limite de %d cadastros.\n", LIMITE_CADASTROS);
-            return 0;
-        }
+            while (1) {  // Loop para tentativas de cadastro
+                printf("Digite o CPF (somente números) do usuário que deseja cadastrar (%d/%d): ", cadastrosExistentes + 1, LIMITE_CADASTROS);
+                fgets(cpf, sizeof(cpf), stdin);
+                cpf[strcspn(cpf, "\n")] = '\0';  
 
-        printf("Digite o CPF (somente números) do usuário que deseja cadastrar (%d/%d): ", cadastrosExistentes + 1, LIMITE_CADASTROS);
-        fgets(cpf, sizeof(cpf), stdin);
-        cpf[strcspn(cpf, "\n")] = '\0';  
+                if (!VarVerificarCPFnumero(cpf)) {
+                    printf("CPF inválido! Digite apenas números.\n");
+                    continue;  // Volta para o início do loop de cadastro
+                }
 
-        // Verifica se o CPF já está cadastrado
-        if (verificarCPF(cpf)) {
-            printf("CPF já cadastrado! Tente outro CPF ou faça login.\n");
+                // Verifica se o CPF já está cadastrado
+                if (verificarCPF(cpf)) {
+                    printf("CPF já cadastrado! Tente outro CPF ou faça login.\n");
+                } else {
+                    printf("Digite a senha: ");
+                    fgets(senha, sizeof(senha), stdin);
+                    senha[strcspn(senha, "\n")] = '\0'; 
+
+                    CadastrarUsuario(cpf, senha);
+                    printf("Cadastrado com sucesso!\n");
+                    printf("Bem-vindo ao FEINANCE!\n");
+                    menuPrincipal();
+                    break;
+                }
+            }
+
         } else {
-            printf("Digite a senha: ");
-            fgets(senha, sizeof(senha), stdin);
-            senha[strcspn(senha, "\n")] = '\0'; // o comando strcspn ajuda a ver e garantir q o cpf utilizado nn possui cadastro, ent ele retira o "\n" para ver melhor 
-
-            cadastrarUsuario(cpf, senha);
-            printf("Cadastrado com sucesso!\n");
-            printf("Bem-vindo ao FEINANCE!\n");
-            menuPrincipal();
-            
+            printf("Opção inválida! Tente novamente.\n");
         }
-
-    } else {
-        printf("Opção inválida.\n");
     }
 
-    printf("Encerrando o programa.\n");
     return 0;
 }
