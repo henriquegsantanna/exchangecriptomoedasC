@@ -158,7 +158,7 @@ int main() {
                 }
 
                 if (!VarVerificarCPFnumero(cpf)) {
-                    printf("CPF inválido! Digite apenas números.\n");
+                    printf("Digite apenas numeros.\n");
                     continue;  // Volta para o início do loop de login
                 }
 
