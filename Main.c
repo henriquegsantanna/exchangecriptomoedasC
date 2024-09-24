@@ -72,7 +72,7 @@ void menuPrincipal() {
 
         switch (opcao) {
             case 1:
-                // Lógica para consultar saldo
+                // Lógica para consultar saldooooo
                 break;
             case 2:
                 // Lógica para consultar extrato
