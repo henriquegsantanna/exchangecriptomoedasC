@@ -2,7 +2,15 @@
 #include <string.h>
 #include <ctype.h>  
 #define LIMITE_CADASTROS 10
-//  teste de comit para ver se houve alguma mudança
+
+
+
+
+
+// EU ESTOU FAZENDO UM TESTE PARA MOSTRAR PARA O HENRIQUE
+
+
+
 int sair = 0; // Variável global para controlar o encerramento
 
 // Função para contar o numero de registros no arquivo
