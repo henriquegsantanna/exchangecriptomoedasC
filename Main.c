@@ -3,7 +3,7 @@
 #include <ctype.h>  
 #define LIMITE_CADASTROS 10
 
-int sair = 0; // Variável global para controlar o encerramento
+int sair = 0; 
 
 // Função para contar o numero de registros no arquivo
 int ContarQuantCadastros() {
