@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>  // Biblioteca q server para inserir o isdigit(), usado para verificar se oq foi digitado é um numero ou uma string
+#include <ctype.h>  
 #define LIMITE_CADASTROS 10
 
 int sair = 0; // Variável global para controlar o encerramento
