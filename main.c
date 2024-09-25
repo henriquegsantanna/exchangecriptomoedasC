@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>  // Biblioteca para isdigit()
+#include <ctype.h>
+#include <stdlib.h> // Para usar atof
 #define LIMITE_CADASTROS 10
 
 int sair = 0; 
@@ -16,7 +17,7 @@ int ContarQuantCadastros() {
     char linha[100];
 
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        if (strlen(linha) > 1) {  // Conta apenas linhas não vazias
+        if (strlen(linha) > 1) {
             contador++;
         }
     }
@@ -29,17 +30,17 @@ int ContarQuantCadastros() {
 int VarVerificarCPFnumero(const char* cpf) {
     for (int i = 0; i < strlen(cpf); i++) {
         if (!isdigit(cpf[i])) {
-            return 0;  // Se encontrar qualquer caractere não numérico, retorna erro
+            return 0;
         }
     }
-    return 1;  // CPF válido (apenas números)
+    return 1;
 }
 
 // Função para verificar se o CPF já está cadastrado
 int verificarCPF(const char* cpf) {
     FILE *arquivo = fopen("usuarios.txt", "r");
     if (arquivo == NULL) {
-        return 0;  // Se o arquivo não existir, considera que não há CPF cadastrado
+        return 0; 
     }
 
     char linha[100], cpfArquivo[20];
@@ -48,19 +49,19 @@ int verificarCPF(const char* cpf) {
         sscanf(linha, "CPF: %s", cpfArquivo);
         if (strcmp(cpf, cpfArquivo) == 0) {
             fclose(arquivo);
-            return 1;  // CPF encontrado
+            return 1;
         }
     }
 
     fclose(arquivo);
-    return 0;  // CPF não encontrado
+    return 0;
 }
 
 // Função para verificar se o CPF e a senha estão corretos
 int verificarLogin(const char* cpf, const char* senha) {
     FILE *arquivo = fopen("usuarios.txt", "r");
     if (arquivo == NULL) {
-        return 0;  // Se o arquivo não existir, considera que não há dados cadastrados
+        return 0;
     }
 
     char linha[100], cpfArquivo[20], senhaArquivo[50];
@@ -69,37 +70,151 @@ int verificarLogin(const char* cpf, const char* senha) {
         sscanf(linha, "CPF: %s SENHA: %s ", cpfArquivo, senhaArquivo);
         if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {
             fclose(arquivo);
-            return 1; // Login bem-sucedido
+            return 1;
         }
     }
 
     fclose(arquivo);
-    return 0;  // Login falhou
+    return 0;
 }
 
-   //função para adicionar saldo
+// Função para adicionar saldo
 void adicionar_saldo() {
-    char senha[12];
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    char linha[100];
     float valor;
 
-    // Verifica se a senha está correta para o usuário logado
-    printf("Adicionar saldo\n");
-    printf("Digite sua senha para confirmar a operação: ");
-    scanf(" %s", senha); // Add space before %s to ignore newline character
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
 
-    if (verificarLogin(cpf_logado,senha)) {
-        printf("Senha correta. Adicionando saldo.\n");
-        printf("Digite o valor a ser depositado: ");
-        scanf("%f", &valor);
+    printf("Digite o valor que deseja adicionar ao saldo: ");
+    scanf("%f", &valor);
 
+    // Adiciona o saldo ao usuário logado
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+        float saldoAtual;
 
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
 
-        printf("Saldo atualizado com sucesso!\n");
+        // Verifica se é o usuário logado
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            saldoAtual += valor; // Atualiza o saldo
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: 0\n", cpfArquivo, senhaArquivo, saldoAtual);
+        } else {
+            fprintf(temp, "%s", linha); // Copia a linha original
+        }
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+    remove("usuarios.txt");
+    rename("temp.txt", "usuarios.txt");
+
+    printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", valor);
+}
+
+// Função para consultar saldo
+void consultar_saldo() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo!\n");
+        return;
+    }
+
+    char linha[100];
+    float saldoAtual = 0;
+    int encontrado = 0;
+
+    // Localiza o saldo do usuário logado
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    fclose(arquivo);
+
+    if (encontrado) {
+        printf("Seu saldo atual é:\n");
+        printf("REAL: %.2f\n", saldoAtual);
     } else {
-        printf("Senha incorreta. Operação cancelada.\n");
+        printf("Usuário não encontrado!\n");
     }
 }
 
+// Função para sacar saldo
+void sacar_saldo() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    char linha[100];
+    float valor, saldoAtual = 0;
+    int encontrado = 0;
+
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    // Consulta o saldo atual do usuário logado
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("Usuário não encontrado!\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    printf("Seu saldo atual é: %.2f\n", saldoAtual);
+    printf("Digite o valor que deseja sacar: ");
+    scanf("%f", &valor);
+
+    if (valor > saldoAtual) {
+        printf("Saldo insuficiente para realizar o saque.\n");
+    } else {
+        saldoAtual -= valor; // Deduz o valor do saldo
+
+        // Atualiza o arquivo temporário com o novo saldo
+        rewind(arquivo);
+        while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+            char cpfArquivo[20], senhaArquivo[50];
+            float saldoArquivo;
+
+            sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
+
+            if (strcmp(cpf_logado, cpfArquivo) == 0) {
+                fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: 0\n", cpfArquivo, senhaArquivo, saldoAtual);
+            } else {
+                fprintf(temp, "%s", linha); // Copia a linha original
+            }
+        }
+
+        printf("Saque realizado com sucesso! Novo saldo: %.2f\n", saldoAtual);
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+    remove("usuarios.txt");
+    rename("temp.txt", "usuarios.txt");
+}
 
 
 // Função para abrir o menu principal
@@ -119,15 +234,17 @@ void menuPrincipal() {
 
         switch (opcao) {
             case 1:
-                adicionar_saldo();
+                // Lógica para consultar saldo 
+                consultar_saldo();
+                break;
             case 2:
                 // Lógica para consultar extrato
                 break;
             case 3:
-                // Lógica para depositar
+                adicionar_saldo(); // Chama a função de adicionar saldo
                 break;
             case 4:
-                // Lógica para sacar
+                sacar_saldo();
                 break;
             case 5:
                 // Lógica para comprar criptomoedas
@@ -146,19 +263,17 @@ void menuPrincipal() {
     } while (opcao != 7);
 }
 
-
 // Função para cadastrar um novo CPF e senha
 void CadastrarUsuario(const char* cpf, const char* senha) {
-    FILE *arquivo = fopen("usuarios.txt", "a"); // Abre o arquivo para adicionar
+    FILE *arquivo = fopen("usuarios.txt", "a");
 
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo!\n");
         return;
     }
 
-    // Insere no arquivo o cpf e a senha
     fprintf(arquivo, "CPF: %s\tSENHA: %s\tREAL: 0\tBITCOIN: 0\n", cpf, senha);
-    fclose(arquivo); // Fecha o arquivo
+    fclose(arquivo);
 }
 
 int main() {
@@ -166,7 +281,7 @@ int main() {
     char senha[50];
     int opcao, cadastrosExistentes;
 
-    while (!sair) {  // Loop principal que reinicia em caso de erro
+    while (!sair) {
         cadastrosExistentes = ContarQuantCadastros();
         printf("Bem-vindo ao FEINANCE!\n");
         printf("Digite 1 para logar ou 2 para cadastrar um novo usuário (ou 0 para sair): ");
@@ -176,7 +291,7 @@ int main() {
         if (opcao == 0) {
             printf("Saindo do sistema.\n");
             sair = 1;
-            break;  // Encerra o programa
+            break;
         }
 
         if (opcao == 1) {
@@ -202,10 +317,10 @@ int main() {
 
                 if (verificarLogin(cpf, senha)) {
                     printf("Login bem-sucedido! Bem-vindo!\n");
-
-                    menuPrincipal(); // Chama o menu principal
+                    strcpy(cpf_logado, cpf); // Armazena o CPF logado
+                    menuPrincipal();
                     if (sair) {
-                        break; // Sai do loop principal se sair foi definido
+                        break;
                     }
                 } else {
                     printf("CPF ou senha incorretos. Tente novamente.\n");
@@ -226,10 +341,9 @@ int main() {
 
                 if (!VarVerificarCPFnumero(cpf)) {
                     printf("CPF inválido! Digite apenas números.\n");
-                    continue;  // Volta para o início do loop de cadastro
+                    continue; 
                 }
 
-                // Verifica se o CPF já foi cadastrado
                 if (verificarCPF(cpf)) {
                     printf("CPF já cadastrado! Tente outro CPF ou faça login.\n");
                 } else {
