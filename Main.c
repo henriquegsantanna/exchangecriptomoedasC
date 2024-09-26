@@ -144,10 +144,10 @@ void consultar_saldo() {
     fclose(arquivo);
 
     if (encontrado) {
-        printf("Seu saldo atual é:\n");
+        printf("Seu saldo atual:\n");
         printf("REAL: %.2f\n", saldoAtual);
     } else {
-        printf("Usuário não encontrado!\n");
+        printf("Usuario nao encontrado!\n");
     }
 }
 
@@ -177,13 +177,13 @@ void sacar_saldo() {
     }
 
     if (!encontrado) {
-        printf("Usuário não encontrado!\n");
+        printf("Usuario nao encontrado!\n");
         fclose(arquivo);
         fclose(temp);
         return;
     }
 
-    printf("Seu saldo atual é: %.2f\n", saldoAtual);
+    printf("Seu saldo atual: %.2f\n", saldoAtual);
     printf("Digite o valor que deseja sacar: ");
     scanf("%f", &valor);
 
@@ -229,7 +229,7 @@ void menuPrincipal() {
         printf("5. Comprar criptomoedas\n");
         printf("6. Vender criptomoedas\n");
         printf("7. Sair da Conta\n");
-        printf("Digite a opção desejada: ");
+        printf("Digite a opcao desejada: ");
         scanf("%d", &opcao);
 
         switch (opcao) {
@@ -257,7 +257,7 @@ void menuPrincipal() {
                 sair = 1; // Define sair como 1 para encerrar o sistema
                 break;
             default:
-                printf("Opção inválida!\n");
+                printf("Opcao invalida!\n");
                 break;
         }
     } while (opcao != 7);
@@ -284,7 +284,7 @@ int main() {
     while (!sair) {
         cadastrosExistentes = ContarQuantCadastros();
         printf("Bem-vindo ao FEINANCE!\n");
-        printf("Digite 1 para logar ou 2 para cadastrar um novo usuário (ou 0 para sair): ");
+        printf("Digite 1 para logar ou 2 para cadastrar um novo usuario (ou 0 para sair): ");
         scanf("%d", &opcao);
         getchar(); 
 
@@ -297,7 +297,7 @@ int main() {
         if (opcao == 1) {
             // Login
             while (1) { 
-                printf("Digite o CPF para login (somente números) (ou 0 para cancelar): ");
+                printf("Digite o CPF para login (somente numeros) (ou 0 para cancelar): ");
                 fgets(cpf, sizeof(cpf), stdin);
                 cpf[strcspn(cpf, "\n")] = '\0'; 
 
@@ -307,7 +307,7 @@ int main() {
                 }
 
                 if (!VarVerificarCPFnumero(cpf)) {
-                    printf("CPF inválido! Digite apenas números.\n");
+                    printf("CPF invalido! Digite apenas numeros.\n");
                     continue; 
                 }
 
@@ -330,22 +330,22 @@ int main() {
         } else if (opcao == 2) {
             // Cadastro
             if (cadastrosExistentes >= LIMITE_CADASTROS) {
-                printf("O arquivo já contém o limite de %d cadastros.\n", LIMITE_CADASTROS);
+                printf("O arquivo ja contem o limite de %d cadastros.\n", LIMITE_CADASTROS);
                 continue; 
             }
 
             while (1) { 
-                printf("Digite o CPF (somente números) do usuário que deseja cadastrar (%d/%d): ", cadastrosExistentes + 1, LIMITE_CADASTROS);
+                printf("Digite o CPF (somente numeros) do usuário que deseja cadastrar (%d/%d): ", cadastrosExistentes + 1, LIMITE_CADASTROS);
                 fgets(cpf, sizeof(cpf), stdin);
                 cpf[strcspn(cpf, "\n")] = '\0';  
 
                 if (!VarVerificarCPFnumero(cpf)) {
-                    printf("CPF inválido! Digite apenas números.\n");
+                    printf("CPF invalido! Digite apenas numeros.\n");
                     continue; 
                 }
 
                 if (verificarCPF(cpf)) {
-                    printf("CPF já cadastrado! Tente outro CPF ou faça login.\n");
+                    printf("CPF ja cadastrado! Tente outro CPF ou faça login.\n");
                 } else {
                     printf("Digite a senha: ");
                     fgets(senha, sizeof(senha), stdin);
@@ -363,9 +363,9 @@ int main() {
             }
 
         } else {
-            printf("Opção inválida! Tente novamente.\n");
+            printf("Opcao invalida! Tente novamente.\n");
         }
     }
 
-    return 0;
+    return 0; //FAZER COMPRA, VENDA E TAXAS DAS CRIPTOMOEDAS
 }
