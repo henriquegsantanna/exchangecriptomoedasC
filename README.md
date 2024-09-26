@@ -10,11 +10,28 @@ Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado tota
 
 - **Cadastrar Usuario:** Possibilidade de cadastrar até 10 usuarios no sistema
 
+    🔍 **Código do Comando:**  `RUN -> 2 para cadastrar um novo usuário `
+
 - **Depositar Fundos:** Sistema suporta depositos na moeda: Real, sem limite de deposito.
 
-- **Comprar Criptomoedas:** Sitema possui algumas moedas para comprar, basta apenas ter o valor em Real (R$) na conta, escolher a moeda e efetuar a compra, com as devidas taxas aplicadas
+    🔍 **Código do Comando:**  `3. Depositar`
 
-- **Vender Criptomoedas:** Sendo possivel tambem vender as moedas compradas, escolhendo a moeda e quantidade que deseja vender e o valor de venda sera convertido pra real (R$), com as devidas taxas aplicadas
+- **Sacar Fundos:** Caso necessite sacar o valor em real, tambem é possivel, pois o sistema possui uma função de saque, basta possuir o valor na moeda Real (R$).
+
+    🔍 **Código do Comando:**  `4. Sacar`
+
+- **Comprar Criptomoedas:** Sistema possui algumas moedas para comprar, basta apenas ter o valor em Real (R$) na conta, escolher a moeda e efetuar a compra e com as devidas taxas aplicadas o saldo será atualizado
+
+    🔍 **Código do Comando:**  `5. Comprar criptomoedas`
+    
+
+- **Vender Criptomoedas:** Sendo possivel tambem vender as moedas compradas, escolhendo a moeda e a quantidade que deseja vender apos confirmar, o valor de venda sera convertido pra real (R$), com as devidas taxas aplicadas e enviado ao saldo de Reais (R$)
+
+    🔍 **Código do Comando:**  `6. Vender criptomoedas`
+
+ - **Deslogar da Conta:** Sai da conta e finaliza o sistema, evitando que qualquer pessoa consiga analisar sua conta
+
+    🔍 **Código do Comando:**  `7. Sair da Conta`
 
 ## 🪙 **Moedas Disponiveis**
 
