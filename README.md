@@ -39,4 +39,12 @@ Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado tota
     💲 ETHEREUM (ETH) 
     💲 RIPPLE (XRP) 
 
+## ⌨️ **Como Usar o Sistema**
 
+1. Abra o terminal e navegue até o diretório onde o arquivo `main.c` está localizado.
+
+2. Compile o código usando o comando abaixo:
+   ```bash
+   gcc main.c 
+   ```
+3. Selecionar 2 para se cadastrar    
