@@ -159,76 +159,80 @@ void consultar_saldo() {
 
 // Função para sacar saldo
 void sacar_saldo() {
-FILE *arquivo = fopen("usuarios.txt", "r");
-FILE *temp = fopen("temp.txt", "w");
-char linha[100];
-float valor, saldoAtual = 0;
-int encontrado = 0;
-float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    char linha[100];
+    float valor, saldoAtual = 0;
+    int encontrado = 0;
+    float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
 
-if (arquivo == NULL || temp == NULL) {
-    printf("Erro ao abrir os arquivos!\n");
-    return;
-}
-
-// Consulta o saldo atual do usuário logado
-while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-    char cpfArquivo[20], senhaArquivo[50];
-
-    sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-
-    if (strcmp(cpf_logado, cpfArquivo) == 0) {
-        encontrado = 1;
-        break;
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
     }
-}
 
-if (!encontrado) {
-    printf("Usuario nao encontrado!\n");
-    fclose(arquivo);
-    fclose(temp);
-    return;
-}
+    // Consulta o saldo atual do usuário logado
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
 
-// Solicita a senha para confirmação
-char senha_digitada[50];
-printf("Digite sua senha para confirmar o saque: ");
-scanf("%s", senha_digitada);
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
 
-// Compara a senha digitada com a senha do arquivo
-rewind(arquivo); // Voltar ao início do arquivo para comparar a senha
-int senha_correta = 0;
-while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-    char cpfArquivo[20], senhaArquivo[50];
-    sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-
-    if (strcmp(cpf_logado, cpfArquivo) == 0) {
-        if (strcmp(senha_digitada, senhaArquivo) == 0) {
-            senha_correta = 1;
-            printf("Senha correta.\n");
-            break; // Encontrou o usuário e a senha, sair do loop
-        } else {
-            printf("Senha incorreta. Saque cancelado.\n");
-            fclose(arquivo);
-            fclose(temp);
-            return;
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            encontrado = 1;
+            break;
         }
     }
-}
 
-if (!senha_correta) {
-    printf("Senha incorreta. Saque cancelado.\n");
-    fclose(arquivo);
-    fclose(temp);
-    return;
-}
+    if (!encontrado) {
+        printf("Usuario nao encontrado!\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
 
-printf("Digite o valor que deseja sacar: ");
-scanf("%f", &valor);
+    // Solicita a senha para confirmação
+    char senha_digitada[50];
+    printf("Digite sua senha para confirmar o saque: ");
+    scanf("%s", senha_digitada);
 
-if (valor > saldoAtual) {
-    printf("Saldo insuficiente para realizar o saque.\n");
-} else {
+    // Compara a senha digitada com a senha do arquivo
+    rewind(arquivo); // Voltar ao início do arquivo para comparar a senha
+    int senha_correta = 0;
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            if (strcmp(senha_digitada, senhaArquivo) == 0) {
+                senha_correta = 1;
+                printf("Senha correta.\n");
+                break; // Encontrou o usuário e a senha, sair do loop
+            } else {
+                printf("Senha incorreta. Saque cancelado.\n");
+                fclose(arquivo);
+                fclose(temp);
+                return;
+            }
+        }
+    }
+
+    if (!senha_correta) {
+        printf("Senha incorreta. Saque cancelado.\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    // Loop para solicitar um valor válido para saque
+    do {
+        printf("Digite o valor que deseja sacar: ");
+        scanf("%f", &valor);
+
+        if (valor > saldoAtual) {
+            printf("Valor insuficiente, insira um valor que voce possui.\n");
+        }
+    } while (valor > saldoAtual);
+
     saldoAtual -= valor; // Deduz o valor do saldo
 
     // Atualiza o arquivo temporário com o novo saldo SOMENTE se o saque for autorizado
@@ -247,13 +251,20 @@ if (valor > saldoAtual) {
     }
 
     printf("Saque realizado com sucesso! Novo saldo: %.2f\n", saldoAtual);
+
+    fclose(arquivo);
+    fclose(temp);
+    remove("usuarios.txt");
+    rename("temp.txt", "usuarios.txt");
 }
 
-fclose(arquivo);
-fclose(temp);
-remove("usuarios.txt");
-rename("temp.txt", "usuarios.txt");
-}
+
+
+
+
+
+
+
 
 // Função para abrir o menu principal
 void menuPrincipal() {
