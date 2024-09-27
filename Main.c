@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h> // Para usar atof
+#include <stdlib.h> 
 #define LIMITE_CADASTROS 10
 
 int sair = 0; 
@@ -83,7 +83,8 @@ void adicionar_saldo() {
     FILE *arquivo = fopen("usuarios.txt", "r");
     FILE *temp = fopen("temp.txt", "w");
     char linha[100];
-    float valor;
+    float valor, saldoAtual;
+    float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
@@ -96,14 +97,12 @@ void adicionar_saldo() {
     // Adiciona o saldo ao usuário logado
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
-        float saldoAtual;
-
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
 
         // Verifica se é o usuário logado
         if (strcmp(cpf_logado, cpfArquivo) == 0) {
             saldoAtual += valor; // Atualiza o saldo
-            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: 0\n", cpfArquivo, senhaArquivo, saldoAtual);
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
         } else {
             fprintf(temp, "%s", linha); // Copia a linha original
         }
@@ -127,13 +126,16 @@ void consultar_saldo() {
 
     char linha[100];
     float saldoAtual = 0;
+    float SaldoBitcoin = 0;
+    float SaldoEth = 0;
+    float SaldoRipple = 0;
     int encontrado = 0;
 
     // Localiza o saldo do usuário logado
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
 
-        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", cpfArquivo, senhaArquivo, &saldoAtual, &SaldoBitcoin, &SaldoEth, &SaldoRipple);
 
         if (strcmp(cpf_logado, cpfArquivo) == 0) {
             encontrado = 1;
@@ -144,8 +146,12 @@ void consultar_saldo() {
     fclose(arquivo);
 
     if (encontrado) {
+        printf("CPF: %s\n", cpf_logado);
         printf("Seu saldo atual:\n");
         printf("REAL: %.2f\n", saldoAtual);
+        printf("BITCOIN: %.2f\n", SaldoBitcoin);
+        printf("ETHEREUM: %.2f\n", SaldoEth);
+        printf("RIPPLE: %.2f\n", SaldoRipple);
     } else {
         printf("Usuario nao encontrado!\n");
     }
@@ -201,7 +207,7 @@ void sacar_saldo() {
             sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
 
             if (strcmp(cpf_logado, cpfArquivo) == 0) {
-                fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: 0\n", cpfArquivo, senhaArquivo, saldoAtual);
+                fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: 0\tETHEREUM: 0\tRIPPLE: 0\n", cpfArquivo, senhaArquivo, saldoAtual);
             } else {
                 fprintf(temp, "%s", linha); // Copia a linha original
             }
@@ -272,7 +278,7 @@ void CadastrarUsuario(const char* cpf, const char* senha) {
         return;
     }
 
-    fprintf(arquivo, "CPF: %s\tSENHA: %s\tREAL: 0\tBITCOIN: 0\n", cpf, senha);
+    fprintf(arquivo, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n",cpf, senha);
     fclose(arquivo);
 }
 
