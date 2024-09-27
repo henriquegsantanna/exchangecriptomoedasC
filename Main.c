@@ -190,7 +190,39 @@ void sacar_saldo() {
         return;
     }
 
-    printf("Seu saldo atual: %.2f\n", saldoAtual);
+    // Solicita a senha para confirmação
+    char senha_digitada[50];
+    printf("Digite sua senha para confirmar o saque: ");
+    scanf("%s", senha_digitada);
+
+    // Compara a senha digitada com a senha do arquivo
+    rewind(arquivo); // Voltar ao início do arquivo para comparar a senha
+    int senha_correta = 0;
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            if (strcmp(senha_digitada, senhaArquivo) == 0) {
+                senha_correta = 1;
+                printf("Senha correta.\n");
+                break; // Encontrou o usuário e a senha, sair do loop
+            } else {
+                printf("Senha incorreta. Saque cancelado.\n");
+                fclose(arquivo);
+                fclose(temp);
+                return;
+            }
+        }
+    }
+
+    if (!senha_correta) {
+        printf("Senha incorreta. Saque cancelado.\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
     printf("Digite o valor que deseja sacar: ");
     scanf("%f", &valor);
 
@@ -199,7 +231,7 @@ void sacar_saldo() {
     } else {
         saldoAtual -= valor; // Deduz o valor do saldo
 
-        // Atualiza o arquivo temporário com o novo saldo
+        // Atualiza o arquivo temporário com o novo saldo SOMENTE se o saque for autorizado
         rewind(arquivo);
         while (fgets(linha, sizeof(linha), arquivo) != NULL) {
             char cpfArquivo[20], senhaArquivo[50];
@@ -222,7 +254,6 @@ void sacar_saldo() {
     remove("usuarios.txt");
     rename("temp.txt", "usuarios.txt");
 }
-
 
 // Função para abrir o menu principal
 void menuPrincipal() {
