@@ -85,6 +85,7 @@ void adicionar_saldo() {
     char linha[100];
     float valor, saldoAtual;
     float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
+    float novoSaldo = 0.0; // Variável para armazenar o novo saldo
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
@@ -101,8 +102,8 @@ void adicionar_saldo() {
 
         // Verifica se é o usuário logado
         if (strcmp(cpf_logado, cpfArquivo) == 0) {
-            saldoAtual += valor; // Atualiza o saldo
-            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+            novoSaldo = saldoAtual + valor; // Atualiza o novo saldo
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, novoSaldo, saldoBitcoin, saldoEth, saldoRipple);
         } else {
             fprintf(temp, "%s", linha); // Copia a linha original
         }
@@ -112,8 +113,7 @@ void adicionar_saldo() {
     fclose(temp);
     remove("usuarios.txt");
     rename("temp.txt", "usuarios.txt");
-
-    printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", valor);
+    printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", novoSaldo);
 }
 
 // Função para consultar saldo
