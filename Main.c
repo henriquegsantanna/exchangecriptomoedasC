@@ -159,100 +159,100 @@ void consultar_saldo() {
 
 // Função para sacar saldo
 void sacar_saldo() {
-    FILE *arquivo = fopen("usuarios.txt", "r");
-    FILE *temp = fopen("temp.txt", "w");
-    char linha[100];
-    float valor, saldoAtual = 0;
-    int encontrado = 0;
-    float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
+FILE *arquivo = fopen("usuarios.txt", "r");
+FILE *temp = fopen("temp.txt", "w");
+char linha[100];
+float valor, saldoAtual = 0;
+int encontrado = 0;
+float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
 
-    if (arquivo == NULL || temp == NULL) {
-        printf("Erro ao abrir os arquivos!\n");
-        return;
+if (arquivo == NULL || temp == NULL) {
+    printf("Erro ao abrir os arquivos!\n");
+    return;
+}
+
+// Consulta o saldo atual do usuário logado
+while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+    char cpfArquivo[20], senhaArquivo[50];
+
+    sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+    if (strcmp(cpf_logado, cpfArquivo) == 0) {
+        encontrado = 1;
+        break;
     }
+}
 
-    // Consulta o saldo atual do usuário logado
-    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        char cpfArquivo[20], senhaArquivo[50];
-
-        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
-            encontrado = 1;
-            break;
-        }
-    }
-
-    if (!encontrado) {
-        printf("Usuario nao encontrado!\n");
-        fclose(arquivo);
-        fclose(temp);
-        return;
-    }
-
-    // Solicita a senha para confirmação
-    char senha_digitada[50];
-    printf("Digite sua senha para confirmar o saque: ");
-    scanf("%s", senha_digitada);
-
-    // Compara a senha digitada com a senha do arquivo
-    rewind(arquivo); // Voltar ao início do arquivo para comparar a senha
-    int senha_correta = 0;
-    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        char cpfArquivo[20], senhaArquivo[50];
-        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
-            if (strcmp(senha_digitada, senhaArquivo) == 0) {
-                senha_correta = 1;
-                printf("Senha correta.\n");
-                break; // Encontrou o usuário e a senha, sair do loop
-            } else {
-                printf("Senha incorreta. Saque cancelado.\n");
-                fclose(arquivo);
-                fclose(temp);
-                return;
-            }
-        }
-    }
-
-    if (!senha_correta) {
-        printf("Senha incorreta. Saque cancelado.\n");
-        fclose(arquivo);
-        fclose(temp);
-        return;
-    }
-
-    printf("Digite o valor que deseja sacar: ");
-    scanf("%f", &valor);
-
-    if (valor > saldoAtual) {
-        printf("Saldo insuficiente para realizar o saque.\n");
-    } else {
-        saldoAtual -= valor; // Deduz o valor do saldo
-
-        // Atualiza o arquivo temporário com o novo saldo SOMENTE se o saque for autorizado
-        rewind(arquivo);
-        while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-            char cpfArquivo[20], senhaArquivo[50];
-            float saldoArquivo;
-
-            sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
-
-            if (strcmp(cpf_logado, cpfArquivo) == 0) {
-                fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
-            } else {
-                fprintf(temp, "%s", linha); // Copia a linha original
-            }
-        }
-
-        printf("Saque realizado com sucesso! Novo saldo: %.2f\n", saldoAtual);
-    }
-
+if (!encontrado) {
+    printf("Usuario nao encontrado!\n");
     fclose(arquivo);
     fclose(temp);
-    remove("usuarios.txt");
-    rename("temp.txt", "usuarios.txt");
+    return;
+}
+
+// Solicita a senha para confirmação
+char senha_digitada[50];
+printf("Digite sua senha para confirmar o saque: ");
+scanf("%s", senha_digitada);
+
+// Compara a senha digitada com a senha do arquivo
+rewind(arquivo); // Voltar ao início do arquivo para comparar a senha
+int senha_correta = 0;
+while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+    char cpfArquivo[20], senhaArquivo[50];
+    sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+    if (strcmp(cpf_logado, cpfArquivo) == 0) {
+        if (strcmp(senha_digitada, senhaArquivo) == 0) {
+            senha_correta = 1;
+            printf("Senha correta.\n");
+            break; // Encontrou o usuário e a senha, sair do loop
+        } else {
+            printf("Senha incorreta. Saque cancelado.\n");
+            fclose(arquivo);
+            fclose(temp);
+            return;
+        }
+    }
+}
+
+if (!senha_correta) {
+    printf("Senha incorreta. Saque cancelado.\n");
+    fclose(arquivo);
+    fclose(temp);
+    return;
+}
+
+printf("Digite o valor que deseja sacar: ");
+scanf("%f", &valor);
+
+if (valor > saldoAtual) {
+    printf("Saldo insuficiente para realizar o saque.\n");
+} else {
+    saldoAtual -= valor; // Deduz o valor do saldo
+
+    // Atualiza o arquivo temporário com o novo saldo SOMENTE se o saque for autorizado
+    rewind(arquivo);
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+        float saldoArquivo;
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+        } else {
+            fprintf(temp, "%s", linha); // Copia a linha original
+        }
+    }
+
+    printf("Saque realizado com sucesso! Novo saldo: %.2f\n", saldoAtual);
+}
+
+fclose(arquivo);
+fclose(temp);
+remove("usuarios.txt");
+rename("temp.txt", "usuarios.txt");
 }
 
 // Função para abrir o menu principal
