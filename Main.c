@@ -164,6 +164,7 @@ void sacar_saldo() {
     char linha[100];
     float valor, saldoAtual = 0;
     int encontrado = 0;
+    float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
@@ -207,7 +208,7 @@ void sacar_saldo() {
             sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
 
             if (strcmp(cpf_logado, cpfArquivo) == 0) {
-                fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: 0\tETHEREUM: 0\tRIPPLE: 0\n", cpfArquivo, senhaArquivo, saldoAtual);
+                fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
             } else {
                 fprintf(temp, "%s", linha); // Copia a linha original
             }
