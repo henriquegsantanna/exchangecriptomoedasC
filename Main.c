@@ -82,13 +82,44 @@ int verificarLogin(const char* cpf, const char* senha) {
 void adicionar_saldo() {
     FILE *arquivo = fopen("usuarios.txt", "r");
     FILE *temp = fopen("temp.txt", "w");
-    char linha[100];
-    float valor, saldoAtual;
+    char linha[200];
+    float valor, saldoAtual = 0.0;
     float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
-    float novoSaldo = 0.0; // Variável para armazenar o novo saldo
+    int encontrado = 0;
+    char cpf_logado[20];  // Supondo que o CPF do usuário logado já esteja disponível nessa variável.
+    char senha_logada[20];
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    printf("Digite o CPF do usuário logado: ");
+    scanf("%s", cpf_logado);  // Lê o CPF do usuário logado (substitua pela sua lógica)
+    printf("Digite a senha do usuário logado: ");
+    scanf("%s", cpf_logado);  // Lê a senha do usuário logado (substitua pela sua lógica)
+
+    // Consulta o saldo atual do usuário logado
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        // Ajuste: também captura os valores das criptomoedas
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
+            cpfArquivo, senhaArquivo, &saldoAtual, &saldoBitcoin, &saldoEth, &saldoRipple);
+
+        // Remove possíveis quebras de linha e espaços extras do CPF do arquivo
+        cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;  // Remove quebra de linha do final da string, se houver
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("Usuário não encontrado ou senha incorreta!\n");
+        fclose(arquivo);
+        fclose(temp);
         return;
     }
 
@@ -96,24 +127,38 @@ void adicionar_saldo() {
     scanf("%f", &valor);
 
     // Adiciona o saldo ao usuário logado
+    rewind(arquivo);  // Volta para o início do arquivo para reescrever todas as linhas
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
-        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+        float saldoArquivo, bitcoinArquivo, ethArquivo, rippleArquivo;
+
+        // Ajuste: captura os saldos das criptomoedas corretamente
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
+            cpfArquivo, senhaArquivo, &saldoArquivo, &bitcoinArquivo, &ethArquivo, &rippleArquivo);
+
+        // Remove possíveis quebras de linha e espaços extras do CPF do arquivo
+        cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;
 
         // Verifica se é o usuário logado
         if (strcmp(cpf_logado, cpfArquivo) == 0) {
-            novoSaldo = saldoAtual + valor; // Atualiza o novo saldo
-            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, novoSaldo, saldoBitcoin, saldoEth, saldoRipple);
+            saldoAtual += valor;  // Atualiza o saldo com o valor inserido
+            // Escreve a linha atualizada para o usuário logado com o saldo novo
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n",
+                cpfArquivo, senhaArquivo, saldoAtual, bitcoinArquivo, ethArquivo, rippleArquivo);
         } else {
-            fprintf(temp, "%s", linha); // Copia a linha original
+            // Copia as demais linhas sem modificações
+            fprintf(temp, "%s", linha);
         }
     }
 
+    printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", saldoAtual);
+
     fclose(arquivo);
     fclose(temp);
+
+    // Substitui o arquivo original pelo arquivo temporário
     remove("usuarios.txt");
     rename("temp.txt", "usuarios.txt");
-    printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", novoSaldo);
 }
 
 // Função para consultar saldo
@@ -258,14 +303,6 @@ void sacar_saldo() {
     rename("temp.txt", "usuarios.txt");
 }
 
-
-
-
-
-
-
-
-
 // Função para abrir o menu principal
 void menuPrincipal() {
     int opcao;
@@ -325,6 +362,7 @@ void CadastrarUsuario(const char* cpf, const char* senha) {
     fclose(arquivo);
 }
 
+//Função principal
 int main() {
     char cpf[20]; 
     char senha[50];
