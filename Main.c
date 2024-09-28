@@ -367,8 +367,7 @@ void comprarCripto() {
     float saldoAtual, saldoBitcoin, saldoEth, saldoRipple;
     char cpf_logado[20];  
     char senha_logada[20];
-    float valor_com_taxa = valor + (valor * taxa);  // Subtrair taxa da compra
-    float valor_saldo = valor - (valor * taxa);  // Subtrair taxa da compra
+    int compra_realizada = 0;  // Para controlar se a compra foi feita ou não
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
@@ -398,7 +397,9 @@ void comprarCripto() {
     printf("Digite o valor que deseja comprar: \n");
     scanf("%f", &valor);
 
-    // Pedir senha para validação
+    // Pedir CPF e senha para validação
+    printf("Digite seu CPF: ");
+    scanf("%s", cpf_logado);
     printf("Digite sua senha para confirmar a compra: ");
     scanf("%s", senha_logada);
 
@@ -410,14 +411,13 @@ void comprarCripto() {
                cpfArquivo, senhaArquivo, &saldoAtual, &saldoBitcoin, &saldoEth, &saldoRipple);
         senhaArquivo[strcspn(senhaArquivo, "\r\n")] = 0; // Remover quebra de linha da senha
 
-        if (strcmp(senha_logada, senhaArquivo) == 0) {
+        // Verificar CPF e senha
+        if (strcmp(cpf_logado, cpfArquivo) == 0 && strcmp(senha_logada, senhaArquivo) == 0) {
             encontrado = 1;
 
             // Verificar se o saldo é suficiente para a compra
-            if (saldoAtual >= valor + (valor * taxa)) {
-                float valor_com_taxa = valor + (valor * taxa);  // Subtrair taxa da compra
-                float valor_saldo = valor - (valor * taxa);  // Subtrair taxa da compra
-
+            float valor_com_taxa = valor + (valor * taxa);  // Valor total com taxa
+            if (saldoAtual >= valor_com_taxa) {
                 // Exibir resumo da compra
                 printf("Resumo da compra:\n");
                 printf("Criptomoeda: %s\n", cripto);
@@ -433,58 +433,43 @@ void comprarCripto() {
                 if (confirmacao == 'S' || confirmacao == 's') {
                     // Atualizar saldos
                     saldoAtual -= valor_com_taxa;
-                    if (opcao == 1) saldoBitcoin += valor - (valor * taxa_compra_bitcoin);  // Compra de Bitcoin
-                    else if (opcao == 2) saldoEth += valor - (valor * taxa_compra_ethereum); // Compra de Ethereum
-                    else if (opcao == 3) saldoRipple += valor - (valor * taxa_compra_ripple); // Compra de Ripple
+                    if (opcao == 1) saldoBitcoin += valor - (valor * taxa_compra_bitcoin);
+                    else if (opcao == 2) saldoEth += valor - (valor * taxa_compra_ethereum);
+                    else if (opcao == 3) saldoRipple += valor - (valor * taxa_compra_ripple);
 
                     printf("Compra realizada com sucesso!\n");
-
+                    compra_realizada = 1;  // Marca que a compra foi feita
                 } else {
                     printf("Compra cancelada.\n");
-                    fclose(arquivo);
-                    fclose(temp);
-                    return;
                 }
             } else {
                 printf("Saldo insuficiente para realizar a compra!\n");
-                fclose(arquivo);
-                fclose(temp);
-                return;
             }
 
-            // Atualizar arquivo temporário com os novos saldos
-            rewind(arquivo);  // Voltar ao início do arquivo
-            while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-                char cpfArquivoTemp[20], senhaArquivoTemp[50];
-                float saldoAtualTemp, saldoBitcoinTemp, saldoEthTemp, saldoRippleTemp;
-
-                sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
-                       cpfArquivoTemp, senhaArquivoTemp, &saldoAtualTemp, &saldoBitcoinTemp, &saldoEthTemp, &saldoRippleTemp);
-
-                if (strcmp(cpfArquivo, cpfArquivoTemp) == 0) {
-                    // Atualizar os valores do usuário
-                    fprintf(temp, "CPF: %s\t SENHA: %s\t REAL: %.2f\t BITCOIN: %.2f\t ETHEREUM: %.2f\t RIPPLE: %.2f\n", 
-                            cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
-                } else {
-                    // Copiar linha sem alterações
-                    fputs(linha, temp);
-                }
-            }
-
-            break;
+            // Mesmo que a compra não seja realizada, copiar os dados para o arquivo temporário
+            fprintf(temp, "CPF: %s\t SENHA: %s\t REAL: %.2f\t BITCOIN: %.2f\t ETHEREUM: %.2f\t RIPPLE: %.2f\n", 
+                    cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+        } else {
+            // Copiar os dados de outros usuários sem alteração
+            fputs(linha, temp);
         }
     }
 
     if (!encontrado) {
-        printf("Senha incorreta.\n");
+        printf("CPF ou senha incorretos.\n");
     }
 
     fclose(arquivo);
     fclose(temp);
 
-    // Substituir o arquivo original pelo temporário
-    remove("usuarios.txt");
-    rename("temp.txt", "usuarios.txt");
+    // Se a compra foi confirmada e realizada com sucesso, atualizar o arquivo
+    if (compra_realizada) {
+        remove("usuarios.txt");
+        rename("temp.txt", "usuarios.txt");
+    } else {
+        // Se a compra não foi realizada, remover o arquivo temporário
+        remove("temp.txt");
+    }
 }
 
 //Função principal
