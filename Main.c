@@ -216,53 +216,29 @@ void sacar_saldo() {
         return;
     }
 
-    // Consulta o saldo atual do usuário logado
+    char cpfInput[20], senhaInput[50];
+
+    // Solicitar CPF e senha do usuário
+    printf("Digite seu CPF: ");
+    scanf("%s", cpfInput);
+    printf("Digite sua senha: ");
+    scanf("%s", senhaInput);
+
+    // Consulta o saldo atual do usuário com base no CPF e senha digitados
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
 
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
 
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+        // Verifica se o CPF e a senha estão corretos
+        if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
             encontrado = 1;
             break;
         }
     }
 
     if (!encontrado) {
-        printf("Usuario nao encontrado!\n");
-        fclose(arquivo);
-        fclose(temp);
-        return;
-    }
-
-    // Solicita a senha para confirmação
-    char senha_digitada[50];
-    printf("Digite sua senha para confirmar o saque: ");
-    scanf("%s", senha_digitada);
-
-    // Compara a senha digitada com a senha do arquivo
-    rewind(arquivo); // Voltar ao início do arquivo para comparar a senha
-    int senha_correta = 0;
-    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        char cpfArquivo[20], senhaArquivo[50];
-        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
-            if (strcmp(senha_digitada, senhaArquivo) == 0) {
-                senha_correta = 1;
-                printf("Senha correta.\n");
-                break; // Encontrou o usuário e a senha, sair do loop
-            } else {
-                printf("Senha incorreta. Saque cancelado.\n");
-                fclose(arquivo);
-                fclose(temp);
-                return;
-            }
-        }
-    }
-
-    if (!senha_correta) {
-        printf("Senha incorreta. Saque cancelado.\n");
+        printf("CPF ou senha incorretos!\n");
         fclose(arquivo);
         fclose(temp);
         return;
@@ -278,6 +254,19 @@ void sacar_saldo() {
         }
     } while (valor > saldoAtual);
 
+    // Solicita a senha para confirmação do saque
+    char senha_digitada[50];
+    printf("Digite sua senha para confirmar o saque: ");
+    scanf("%s", senha_digitada);
+
+    // Compara a senha digitada com a senha do arquivo
+    if (strcmp(senhaInput, senha_digitada) != 0) {
+        printf("Senha incorreta. Saque cancelado.\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
     saldoAtual -= valor; // Deduz o valor do saldo
 
     // Atualiza o arquivo temporário com o novo saldo SOMENTE se o saque for autorizado
@@ -288,7 +277,7 @@ void sacar_saldo() {
 
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
 
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+        if (strcmp(cpfInput, cpfArquivo) == 0) {
             fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
         } else {
             fprintf(temp, "%s", linha); // Copia a linha original
