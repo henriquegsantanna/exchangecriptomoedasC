@@ -167,14 +167,22 @@ void consultar_saldo() {
     float SaldoEth = 0;
     float SaldoRipple = 0;
     int encontrado = 0;
+    char cpfInput[20], senhaInput[50];
 
-    // Localiza o saldo do usuário logado
+    // Solicitar CPF e senha do usuário
+    printf("Digite seu CPF: ");
+    scanf("%s", cpfInput);
+    printf("Digite sua senha: ");
+    scanf("%s", senhaInput);
+
+    // Localiza o saldo do usuário
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
 
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", cpfArquivo, senhaArquivo, &saldoAtual, &SaldoBitcoin, &SaldoEth, &SaldoRipple);
 
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+        // Verifica CPF e senha
+        if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
             encontrado = 1;
             break;
         }
@@ -183,14 +191,14 @@ void consultar_saldo() {
     fclose(arquivo);
 
     if (encontrado) {
-        printf("CPF: %s\n", cpf_logado);
+        printf("CPF: %s\n", cpfInput);
         printf("Seu saldo atual:\n");
         printf("REAL: %.2f\n", saldoAtual);
         printf("BITCOIN: %.2f\n", SaldoBitcoin);
         printf("ETHEREUM: %.2f\n", SaldoEth);
         printf("RIPPLE: %.2f\n", SaldoRipple);
     } else {
-        printf("Usuario nao encontrado!\n");
+        printf("CPF ou senha incorretos!\n");
     }
 }
 
