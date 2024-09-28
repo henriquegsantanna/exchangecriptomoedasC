@@ -86,8 +86,8 @@ void adicionar_saldo() {
     float valor, saldoAtual = 0.0;
     float saldoBitcoin = 0.0, saldoEth = 0.0, saldoRipple = 0.0;
     int encontrado = 0;
-    char cpf_logado[20];  // Supondo que o CPF do usuário logado já esteja disponível nessa variável.
-    char senha_logada[20];
+    char cpf_logado[20];  
+    char senha_logada[50];  // Aumentado para acomodar senhas maiores
 
     if (arquivo == NULL || temp == NULL) {
         printf("Erro ao abrir os arquivos!\n");
@@ -95,22 +95,21 @@ void adicionar_saldo() {
     }
 
     printf("Digite o CPF do usuário logado: ");
-    scanf("%s", cpf_logado);  // Lê o CPF do usuário logado (substitua pela sua lógica)
+    scanf("%s", cpf_logado);
     printf("Digite a senha do usuário logado: ");
-    scanf("%s", cpf_logado);  // Lê a senha do usuário logado (substitua pela sua lógica)
+    scanf("%s", senha_logada);  // Corrigido para ler a senha correta
 
     // Consulta o saldo atual do usuário logado
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
 
-        // Ajuste: também captura os valores das criptomoedas
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
             cpfArquivo, senhaArquivo, &saldoAtual, &saldoBitcoin, &saldoEth, &saldoRipple);
 
-        // Remove possíveis quebras de linha e espaços extras do CPF do arquivo
-        cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;  // Remove quebra de linha do final da string, se houver
+        cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;
 
-        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+        // Verifica CPF e senha
+        if (strcmp(cpf_logado, cpfArquivo) == 0 && strcmp(senha_logada, senhaArquivo) == 0) {
             encontrado = 1;
             break;
         }
@@ -127,26 +126,21 @@ void adicionar_saldo() {
     scanf("%f", &valor);
 
     // Adiciona o saldo ao usuário logado
-    rewind(arquivo);  // Volta para o início do arquivo para reescrever todas as linhas
+    rewind(arquivo);  
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
         char cpfArquivo[20], senhaArquivo[50];
         float saldoArquivo, bitcoinArquivo, ethArquivo, rippleArquivo;
 
-        // Ajuste: captura os saldos das criptomoedas corretamente
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
             cpfArquivo, senhaArquivo, &saldoArquivo, &bitcoinArquivo, &ethArquivo, &rippleArquivo);
 
-        // Remove possíveis quebras de linha e espaços extras do CPF do arquivo
         cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;
 
-        // Verifica se é o usuário logado
         if (strcmp(cpf_logado, cpfArquivo) == 0) {
-            saldoAtual += valor;  // Atualiza o saldo com o valor inserido
-            // Escreve a linha atualizada para o usuário logado com o saldo novo
+            saldoAtual += valor;  
             fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.2f\tETHEREUM: %.2f\tRIPPLE: %.2f\n",
                 cpfArquivo, senhaArquivo, saldoAtual, bitcoinArquivo, ethArquivo, rippleArquivo);
         } else {
-            // Copia as demais linhas sem modificações
             fprintf(temp, "%s", linha);
         }
     }
@@ -155,8 +149,6 @@ void adicionar_saldo() {
 
     fclose(arquivo);
     fclose(temp);
-
-    // Substitui o arquivo original pelo arquivo temporário
     remove("usuarios.txt");
     rename("temp.txt", "usuarios.txt");
 }
