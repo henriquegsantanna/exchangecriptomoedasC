@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h> 
+#include <stdlib.h>
+
 #define LIMITE_CADASTROS 10
+#define MAX_LINE 256
 
 int sair = 0; 
 char cpf_logado[20];
@@ -168,6 +170,60 @@ void adicionar_saldo() {
     fclose(temp);
     remove("usuarios.txt");
     rename("temp.txt", "usuarios.txt");
+}
+
+// Função para consultar extrato
+void consultarExtrato() {
+    char cpf[20];  // CPF de até 20 caracteres
+    char line[MAX_LINE];
+    int cpfEncontrado = 0;
+    char cpfFormatado[20];  // Para armazenar "CPF: X"
+
+    // Solicita o CPF do usuário
+    printf("Digite o CPF do usuário: ");
+    scanf("%19s", cpf);  // Limita a entrada para até 19 caracteres
+    printf("--------------------------------\n");
+
+    // Formata o CPF para a busca, no formato "CPF: X"
+    snprintf(cpfFormatado, sizeof(cpfFormatado), "CPF: %s", cpf);
+
+    // Verifica se o CPF existe no arquivo usuarios.txt
+    FILE *usuariosFile = fopen("usuarios.txt", "r");
+    if (usuariosFile == NULL) {
+        printf("Erro ao abrir o arquivo de usuários.\n");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), usuariosFile) != NULL) {
+
+        if (strncmp(line, cpfFormatado, strlen(cpfFormatado)) == 0) {
+            cpfEncontrado = 1;
+            break;
+        }
+    }
+    fclose(usuariosFile);
+
+    if (!cpfEncontrado) {
+        printf("CPF não encontrado no arquivo de usuários.\n");
+        return;
+    }
+
+    // Exibe o extrato para o CPF encontrado
+    FILE *extratoFile = fopen("extrato.txt", "r");
+    if (extratoFile == NULL) {
+        printf("Erro ao abrir o arquivo de extrato.\n");
+        return;
+    }
+
+    printf("Extrato para o CPF %s:\n", cpf);
+    while (fgets(line, sizeof(line), extratoFile) != NULL) {
+
+        // Verifica se a linha começa com o CPF completo no formato "CPF: X"
+        if (strncmp(line, cpfFormatado, strlen(cpfFormatado)) == 0) {
+            printf("%s\n", line);  // Exibe a linha com a transação
+        }
+    }
+    fclose(extratoFile);
 }
 
 // Função para consultar saldo
@@ -343,7 +399,7 @@ void menuPrincipal() {
                 consultar_saldo();
                 break;
             case 2:
-                // Lógica para consultar extrato
+                consultarExtrato(); // Lógica para consultar extrato
                 break;
             case 3:
                 adicionar_saldo(); // Chama a função de adicionar saldo
