@@ -150,9 +150,16 @@ void adicionar_saldo() {
             saldoAtual += valor;  
             fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.6f\tETHEREUM: %.6f\tRIPPLE: %.6f\n",
                 cpfArquivo, senhaArquivo, saldoAtual, bitcoinArquivo, ethArquivo, rippleArquivo);
+                FILE *extrato = fopen("extrato.txt", "a");
+                if (extrato != NULL) {
+                    fprintf(extrato, "CPF: %s - DEPOSITOU: R$%.2f\n", cpf_logado, valor);
+                    fclose(extrato);
+                    } else {
+                        printf("Erro ao abrir o arquivo extrato.txt!\n");
+                        }
         } else {
             fprintf(temp, "%s", linha);
-        }
+            }
     }
 
     printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", saldoAtual);
@@ -260,7 +267,7 @@ void sacar_saldo() {
         scanf("%f", &valor);
 
         if (valor > saldoAtual) {
-            printf("Valor insuficiente, insira um valor que voce possui.\n");
+            printf("Valor insuficiente, insira um valor que você possui.\n");
         }
     } while (valor > saldoAtual);
 
@@ -288,10 +295,22 @@ void sacar_saldo() {
         sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
 
         if (strcmp(cpfInput, cpfArquivo) == 0) {
-            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.6f\tETHEREUM: %.6f\tRIPPLE: %.6f\n", cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+            // Escreve o saldo atualizado para o usuário
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.6f\tETHEREUM: %.6f\tRIPPLE: %.6f\n", 
+                    cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
         } else {
-            fprintf(temp, "%s", linha); // Copia a linha original
+            // Copia a linha original
+            fprintf(temp, "%s", linha);
         }
+    }
+
+    // Registra o saque no extrato
+    FILE *extrato = fopen("extrato.txt", "a");
+    if (extrato != NULL) {
+        fprintf(extrato, "CPF: %s - SACOU: R$%.2f\n", cpfInput, valor);
+        fclose(extrato);
+    } else {
+        printf("Erro ao abrir o arquivo extrato.txt!\n");
     }
 
     printf("Saque realizado com sucesso! Novo saldo: %.2f\n", saldoAtual);
@@ -349,7 +368,7 @@ void menuPrincipal() {
                 printf("Opcao invalida!\n");
                 break;
         }
-    } while (opcao != 7);
+    } while (opcao != 8);
 }
 
 // Função para cadastrar um novo CPF e senha
@@ -375,6 +394,8 @@ void atualizarCotacoes() {
     printf("Bitcoin: R$%.2f\n", cotacao_bitcoin);
     printf("Ethereum: R$%.2f\n", cotacao_ethereum);
     printf("Ripple: R$%.2f\n", cotacao_ripple);
+
+    return 0;
 }
 
 // Função para comprar criptomoedas
@@ -466,11 +487,21 @@ void comprarCripto() {
                 scanf(" %c", &confirmacao);
 
                 if (confirmacao == 'S' || confirmacao == 's') {
+
+   
                     // Atualizar saldos
                     saldoAtual -= valor_com_taxa;
                     if (opcao == 1) saldoBitcoin += valor_em_cripto;
                     else if (opcao == 2) saldoEth += valor_em_cripto;
                     else if (opcao == 3) saldoRipple += valor_em_cripto;
+                                     // Registro da venda no extrato
+                    FILE *extrato = fopen("extrato.txt", "a");
+                    if (extrato != NULL) {
+                        fprintf(extrato, "CPF: %s - COMPROU: R$%.2f %s\n", cpf_logado, saldoAtual, cripto);
+                        fclose(extrato);
+                    } else {
+                        printf("Erro ao abrir o arquivo extrato.txt!\n");
+                    }
 
                     printf("Compra realizada com sucesso!\n");
                     compra_realizada = 1;  // Marca que a compra foi feita
@@ -511,6 +542,7 @@ void comprarCripto() {
 void venderCripto() {
     FILE *arquivo = fopen("usuarios.txt", "r");
     FILE *temp = fopen("temp.txt", "w");
+
     char linha[200];
     float quantidade_venda;
     float taxa;
@@ -607,6 +639,15 @@ void venderCripto() {
 
                     printf("Venda realizada com sucesso!\n");
                     venda_realizada = 1;  // Marca que a venda foi feita
+
+                    // Registro da venda no extrato
+                    FILE *extrato = fopen("extrato.txt", "a");
+                    if (extrato != NULL) {
+                        fprintf(extrato, "CPF: %s - VENDEU: R$%.2f %s\n", cpf_logado, valor_venda, cripto);
+                        fclose(extrato);
+                    } else {
+                        printf("Erro ao abrir o arquivo extrato.txt!\n");
+                    }
                 } else {
                     printf("Venda cancelada.\n");
                 }
@@ -640,7 +681,7 @@ void venderCripto() {
     }
 }
 
-//Função principal
+// Função principal
 int main() {
     char cpf[20]; 
     char senha[50];
@@ -732,5 +773,5 @@ int main() {
         }
     }
 
-    return 0; //FAZER COMPRA, VENDA E TAXAS DAS CRIPTOMOEDAS
+    return 0;
 }
