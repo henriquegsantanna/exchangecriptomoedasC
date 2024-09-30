@@ -31,8 +31,8 @@ Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado tota
 
  - **Deslogar da Conta:** Sai da conta e finaliza o sistema, evitando que qualquer pessoa consiga analisar sua conta
 
-    🔍 **Código do Comando:**  `7. Sair da Conta`
-
+    🔍 **Código do Comando:**  `7. Atualizar Cotações`
+     - **Deslogar da Conta:** Atualizar Cotações 
 ## 🪙 **Moedas Disponiveis**
 
     💲 BITCOIN (BTC) 
@@ -48,3 +48,32 @@ Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado tota
    gcc main.c 
    ```
 3. Selecionar 2 para se cadastrar    
+
+4. Desposite um valor, utilizando o comando:
+   ```bash
+   3 - Depositar Valor
+   ```
+5. Atualize as cotações, utilizando o comando:
+    ```bash
+   7 - Atualizar Cotações
+   ```
+6. Escolha a moeda que deseja comprar, digite o valor e confirme com (S), utilizando o comando abaixo:
+
+    ```bash
+   5 - Comprar Criptomoedas
+   ```
+
+7. Atualize a cotação para verificar se houve ganho ou perde
+
+8. Seleciona o Comando abaixo para vender um valor de criptomoeda:
+    ```bash
+   6 - Vender Criptomoeda
+   ```
+9. Apos confirmar a venda, o valor sera inserido na sua carteira real, utilizando o comando abaixo, o usuario verifica o saldo total de sua carteira.
+    ```bash
+   1 - Consultar Saldo
+   ```
+10. Agora o usuario pode sacar o valor em real, removendo o valor de sua carteira do sistema, utilizando o comando:
+    ```bash
+     4 - Sacar
+    ```
