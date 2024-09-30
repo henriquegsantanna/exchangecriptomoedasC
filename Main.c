@@ -372,9 +372,9 @@ void atualizarCotacoes() {
     cotacao_ripple += cotacao_ripple * gerarVariacao();
 
     printf("Cotações atualizadas:\n");
-    printf("Bitcoin: R$%.6f\n", cotacao_bitcoin);
-    printf("Ethereum: R$%.6f\n", cotacao_ethereum);
-    printf("Ripple: R$%.6f\n", cotacao_ripple);
+    printf("Bitcoin: R$%.2f\n", cotacao_bitcoin);
+    printf("Ethereum: R$%.2f\n", cotacao_ethereum);
+    printf("Ripple: R$%.2f\n", cotacao_ripple);
 }
 
 // Função para comprar criptomoedas
