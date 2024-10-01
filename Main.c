@@ -897,7 +897,7 @@ int main() {
                     printf("Bem-vindo ao FEINANCE!\n");
                     menuPrincipal();
                     if (sair) {
-                        break; // Finaliza tudo se o sair for igual a 1
+                        break; // Finaliza tudo se o sair for igual a 1.
                     }
                     break;
                 }
