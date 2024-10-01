@@ -1,21 +1,33 @@
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>  // Biblioteca q server para inserir o isdigit(), usado para verificar se oq foi digitado é um numero ou uma string
+#include <ctype.h>
+#include <stdlib.h> 
 #define LIMITE_CADASTROS 10
 
-int sair = 0; // Variável global para controlar o encerramento
+int sair = 0; 
+char cpf_logado[20];
 
-// Função para contar o numero de registros no arquivo
+// Cotações iniciais das criptomoedas
+float cotacao_bitcoin = 250000.0;  // Cotação inicial para Bitcoin
+float cotacao_ethereum = 15000.0;  // Cotação inicial para Ethereum
+float cotacao_ripple = 5.0;        // Cotação inicial para Ripple
+
+// Função para gerar uma variação aleatória de -5% a +5%
+float gerarVariacao() {
+    return (float)(rand() % 11 - 5) / 100;  // Gera uma variação de -5% a 5%
+}
+
+// Função para contar o número de registros no arquivo
 int ContarQuantCadastros() {
     FILE *arquivo = fopen("usuarios.txt", "r");
     if (arquivo == NULL) {
-        return 0;  // Se o arquivo não existir, começa com zero cadastros
+        return 0;  // Se o arquivo não existir, começa com zero 
     }
     int contador = 0;
     char linha[100];
 
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        if (strlen(linha) > 1) {  // Conta apenas linhas não vazias
+        if (strlen(linha) > 1) {
             contador++;
         }
     }
@@ -24,21 +36,42 @@ int ContarQuantCadastros() {
     return contador;
 }
 
-// Função para verificar se o CPF contem apenas numeros
+// Função para verificar se o CPF contém apenas números
 int VarVerificarCPFnumero(const char* cpf) {
     for (int i = 0; i < strlen(cpf); i++) {
         if (!isdigit(cpf[i])) {
-            return 0;  // Se encontrar qualquer caractere não numérico, retorna o erro
+            return 0;
         }
     }
-    return 1;  // CPF válido (apenas numeros)
+    return 1;
 }
 
-// Função para verificar se o CPF já esta cadastrado
+// Função para verificar se o CPF e a senha estão corretos
+int verificarLogin(const char* cpf, const char* senha) {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    if (arquivo == NULL) {
+        return 0;
+    }
+
+    char linha[100], cpfArquivo[20], senhaArquivo[50];
+
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        sscanf(linha, "CPF: %s SENHA: %s ", cpfArquivo, senhaArquivo);
+        if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {
+            fclose(arquivo);
+            return 1;
+        }
+    }
+
+    fclose(arquivo);
+    return 0;
+}
+
+// Função para verificar se o CPF já está cadastrado
 int verificarCPF(const char* cpf) {
     FILE *arquivo = fopen("usuarios.txt", "r");
     if (arquivo == NULL) {
-        return 0;  // Se o arquivo não existir, considera que não há CPF cadastrado
+        return 0; 
     }
 
     char linha[100], cpfArquivo[20];
@@ -47,12 +80,238 @@ int verificarCPF(const char* cpf) {
         sscanf(linha, "CPF: %s", cpfArquivo);
         if (strcmp(cpf, cpfArquivo) == 0) {
             fclose(arquivo);
-            return 1;  // CPF encontrado
+            return 1;
         }
     }
 
     fclose(arquivo);
-    return 0;  // CPF não encontrado
+    return 0;
+}
+
+// Função para adicionar saldo
+void adicionar_saldo() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    char linha[200];
+    float valor, saldoAtual = 0.0;
+    float saldoBitcoin = 0.000000, saldoEth = 0.000000, saldoRipple = 0.000000;
+    int encontrado = 0;
+    char cpf_logado[20];  
+    char senha_logada[50];  // Aumentado para acomodar senhas maiores
+
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    printf("Digite o CPF do usuário logado: ");
+    scanf("%s", cpf_logado);
+    printf("Digite a senha do usuário logado: ");
+    scanf("%s", senha_logada);  // Corrigido para ler a senha correta
+
+    // Consulta o saldo atual do usuário logado
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
+            cpfArquivo, senhaArquivo, &saldoAtual, &saldoBitcoin, &saldoEth, &saldoRipple);
+
+        cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;
+
+        // Verifica CPF e senha
+        if (strcmp(cpf_logado, cpfArquivo) == 0 && strcmp(senha_logada, senhaArquivo) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("Usuário não encontrado ou senha incorreta!\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    printf("Digite o valor que deseja adicionar ao saldo: ");
+    scanf("%f", &valor);
+
+    // Adiciona o saldo ao usuário logado
+    rewind(arquivo);  
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+        float saldoArquivo, bitcoinArquivo, ethArquivo, rippleArquivo;
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
+            cpfArquivo, senhaArquivo, &saldoArquivo, &bitcoinArquivo, &ethArquivo, &rippleArquivo);
+
+        cpfArquivo[strcspn(cpfArquivo, "\r\n")] = 0;
+
+        if (strcmp(cpf_logado, cpfArquivo) == 0) {
+            saldoAtual += valor;  
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.6f\tETHEREUM: %.6f\tRIPPLE: %.6f\n",
+                cpfArquivo, senhaArquivo, saldoAtual, bitcoinArquivo, ethArquivo, rippleArquivo);
+        } else {
+            fprintf(temp, "%s", linha);
+        }
+    }
+
+    printf("Saldo adicionado com sucesso! Novo saldo: %.2f\n", saldoAtual);
+
+    fclose(arquivo);
+    fclose(temp);
+    remove("usuarios.txt");
+    rename("temp.txt", "usuarios.txt");
+}
+
+// Função para consultar saldo
+void consultar_saldo() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo!\n");
+        return;
+    }
+
+    char linha[100];
+    float saldoAtual = 0;
+    float SaldoBitcoin = 0.000000;
+    float SaldoEth = 0.000000;
+    float SaldoRipple = 0.000000;
+    int encontrado = 0;
+    char cpfInput[20], senhaInput[50];
+
+    // Solicitar CPF e senha do usuário
+    printf("Digite seu CPF: ");
+    scanf("%s", cpfInput);
+    printf("Digite sua senha: ");
+    scanf("%s", senhaInput);
+
+    // Localiza o saldo do usuário
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", cpfArquivo, senhaArquivo, &saldoAtual, &SaldoBitcoin, &SaldoEth, &SaldoRipple);
+
+        // Verifica CPF e senha
+        if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    fclose(arquivo);
+
+    if (encontrado) {
+        printf("CPF: %s\n", cpfInput);
+        printf("Seu saldo atual:\n");
+        printf("REAL: %.2f\n", saldoAtual);
+        printf("BITCOIN: %.6f\n", SaldoBitcoin);
+        printf("ETHEREUM: %.6f\n", SaldoEth);
+        printf("RIPPLE: %.6f\n", SaldoRipple);
+    } else {
+        printf("CPF ou senha incorretos!\n");
+    }
+}
+
+// Função para sacar saldo
+void sacar_saldo() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    char linha[100];
+    float valor, saldoAtual = 0;
+    int encontrado = 0;
+    float saldoBitcoin = 0.000000, saldoEth = 0.000000, saldoRipple = 0.000000;
+
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    char cpfInput[20], senhaInput[50];
+
+    // Solicitar CPF e senha do usuário
+    printf("Digite seu CPF: ");
+    scanf("%s", cpfInput);
+    printf("Digite sua senha: ");
+    scanf("%s", senhaInput);
+
+    // Consulta o saldo atual do usuário com base no CPF e senha digitados
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+
+        // Verifica se o CPF e a senha estão corretos
+        if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("CPF ou senha incorretos!\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    // Loop para solicitar um valor válido para saque
+    do {
+        printf("Digite o valor que deseja sacar: ");
+        scanf("%f", &valor);
+
+        if (valor > saldoAtual) {
+            printf("Valor insuficiente, insira um valor que você possui.\n");
+        }
+    } while (valor > saldoAtual);
+
+    // Solicita a senha para confirmação do saque
+    char senha_digitada[50];
+    printf("Digite sua senha para confirmar o saque: ");
+    scanf("%s", senha_digitada);
+
+    // Compara a senha digitada com a senha do arquivo
+    if (strcmp(senhaInput, senha_digitada) != 0) {
+        printf("Senha incorreta. Saque cancelado.\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    saldoAtual -= valor; // Deduz o valor do saldo
+
+    // Atualiza o arquivo temporário com o novo saldo SOMENTE se o saque for autorizado
+    rewind(arquivo);
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+        float saldoArquivo;
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoArquivo);
+
+        if (strcmp(cpfInput, cpfArquivo) == 0) {
+            // Escreve o saldo atualizado para o usuário
+            fprintf(temp, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.6f\tETHEREUM: %.6f\tRIPPLE: %.6f\n", 
+                    cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+        } else {
+            // Copia a linha original
+            fprintf(temp, "%s", linha);
+        }
+    }
+
+    // Registra o saque no extrato
+    FILE *extrato = fopen("extrato.txt", "a");
+    if (extrato != NULL) {
+        fprintf(extrato, "CPF: %s - SACOU: R$%.2f REAIS\n", cpfInput, valor);
+        fclose(extrato);
+    } else {
+        printf("Erro ao abrir o arquivo extrato.txt!\n");
+    }
+
+    printf("Saque realizado com sucesso! Novo saldo: %.2f\n", saldoAtual);
+
+    fclose(arquivo);
+    fclose(temp);
+    remove("usuarios.txt");
+    rename("temp.txt", "usuarios.txt");
 }
 
 // Função para abrir o menu principal
@@ -66,91 +325,371 @@ void menuPrincipal() {
         printf("4. Sacar\n");
         printf("5. Comprar criptomoedas\n");
         printf("6. Vender criptomoedas\n");
-        printf("7. Sair da Conta\n");
-        printf("Digite a opção desejada: ");
+        printf("7. Atualizar cotacoes\n");
+        printf("8. Sair da Conta\n");
+        printf("Digite a opcao desejada: ");
         scanf("%d", &opcao);
 
         switch (opcao) {
             case 1:
-                // Lógica para consultar saldo
+                // Lógica para consultar saldo 
+                consultar_saldo();
                 break;
             case 2:
                 // Lógica para consultar extrato
                 break;
             case 3:
-                // Lógica para depositar
+                adicionar_saldo(); // Chama a função de adicionar saldo
                 break;
             case 4:
-                // Lógica para sacar
+                sacar_saldo();
                 break;
             case 5:
-                // Lógica para comprar criptomoedas
+                comprarCripto(); // Chama a função para comprar criptomoedas
                 break;
             case 6:
-                // Lógica para vender criptomoedas
+                venderCripto(); // Chama a função para vender criptomoedas
                 break;
             case 7:
+                atualizarCotacoes();
+                break;
+            case 8:
                 printf("Sistema Finalizado\n");
                 sair = 1; // Define sair como 1 para encerrar o sistema
                 break;
             default:
-                printf("Opção inválida!\n");
+                printf("Opcao invalida!\n");
                 break;
         }
     } while (opcao != 7);
 }
 
-// Função para verificar se o CPF e a senha estão corretos
-int verificarLogin(const char* cpf, const char* senha) {
-    FILE *arquivo = fopen("usuarios.txt", "r");
-    if (arquivo == NULL) {
-        return 0;  // Se o arquivo não existir, considera que não há dados cadastrados
-    }
-
-    char linha[100], cpfArquivo[20], senhaArquivo[50];
-
-    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        sscanf(linha, "CPF: %s SENHA: %s", cpfArquivo, senhaArquivo);
-        if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {
-            fclose(arquivo);
-            return 1;  // Login bem-sucedido
-        }
-    }
-
-    fclose(arquivo);
-    return 0;  // Login falhou
-}
-
 // Função para cadastrar um novo CPF e senha
 void CadastrarUsuario(const char* cpf, const char* senha) {
-    FILE *arquivo = fopen("usuarios.txt", "a"); // Abre o arquivo para adicionar
+    FILE *arquivo = fopen("usuarios.txt", "a");
 
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo!\n");
         return;
     }
 
-    // insere no arquivo o cpf e a senha
-    fprintf(arquivo, "CPF: %s\tSENHA: %s\n", cpf, senha);
-    fclose(arquivo); // Fecha o arquivo
+    fprintf(arquivo, "CPF: %s\tSENHA: %s\tREAL: %.2f\tBITCOIN: %.6f\tETHEREUM: %.6f\tRIPPLE: %.6f\n",cpf, senha);
+    fclose(arquivo);
 }
 
+// Função para atualizar cotações
+void atualizarCotacoes() {
+    cotacao_bitcoin += cotacao_bitcoin * gerarVariacao();
+    cotacao_ethereum += cotacao_ethereum * gerarVariacao();
+    cotacao_ripple += cotacao_ripple * gerarVariacao();
+
+    printf("Cotações atualizadas:\n");
+    printf("Bitcoin: R$%.2f\n", cotacao_bitcoin);
+    printf("Ethereum: R$%.2f\n", cotacao_ethereum);
+    printf("Ripple: R$%.2f\n", cotacao_ripple);
+}
+
+// Função para comprar criptomoedas
+void comprarCripto() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    char linha[200];
+    float valor;
+    float taxa;
+    float taxa_compra_bitcoin = 0.02;   // 2% de taxa para Bitcoin
+    float taxa_compra_ethereum = 0.01;  // 1% de taxa para Ethereum
+    float taxa_compra_ripple = 0.01;    // 1% de taxa para Ripple
+    int opcao;
+    char cripto[20];
+    int encontrado = 0;
+    float saldoAtual, saldoBitcoin, saldoEth, saldoRipple;
+    char cpf_logado[20];  
+    char senha_logada[20];
+    int compra_realizada = 0;  // Para controlar se a compra foi feita ou não
+
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    printf("Digite o numero da criptomoeda que deseja comprar: \n");
+    printf("1 - Bitcoin\t 2 - Ethereum\t 3 - Ripple\n");
+    scanf("%d", &opcao);
+
+    if (opcao == 1) {
+        strcpy(cripto, "Bitcoin");
+        taxa = taxa_compra_bitcoin;
+    } else if (opcao == 2) {
+        strcpy(cripto, "Ethereum");
+        taxa = taxa_compra_ethereum;
+    } else if (opcao == 3) {
+        strcpy(cripto, "Ripple");
+        taxa = taxa_compra_ripple;
+    } else {
+        printf("Opcao invalida!\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    printf("Digite o valor que deseja comprar: \n");
+    scanf("%f", &valor);
+
+    // Pedir CPF e senha para validação
+    printf("Digite seu CPF: ");
+    scanf("%s", cpf_logado);
+    printf("Digite sua senha para confirmar a compra: ");
+    scanf("%s", senha_logada);
+
+    // Busca pelo usuário no arquivo
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
+               cpfArquivo, senhaArquivo, &saldoAtual, &saldoBitcoin, &saldoEth, &saldoRipple);
+        senhaArquivo[strcspn(senhaArquivo, "\r\n")] = 0; // Remover quebra de linha da senha
+
+        // Verificar CPF e senha
+        if (strcmp(cpf_logado, cpfArquivo) == 0 && strcmp(senha_logada, senhaArquivo) == 0) {
+            encontrado = 1;
+
+            float cotacao_selecionada;
+            if (opcao == 1) cotacao_selecionada = cotacao_bitcoin;
+            else if (opcao == 2) cotacao_selecionada = cotacao_ethereum;
+            else cotacao_selecionada = cotacao_ripple;
+
+            // Valor total em reais que o usuário deseja comprar
+            float valor_com_taxa = valor + (valor * taxa);  // Valor total com taxa
+            float valor_em_cripto = valor / cotacao_selecionada;
+
+            // Verificar se o saldo é suficiente para a compra
+            if (saldoAtual >= valor_com_taxa) {
+                // Exibir resumo da compra
+                printf("Resumo da compra:\n");
+                printf("Criptomoeda: %s\n", cripto);
+                printf("Valor em reais: %.2f\n", valor);
+                printf("Taxa: %.2f\n", valor * taxa);
+                printf("Valor final com taxa: %.2f\n", valor_com_taxa);
+                printf("Quantidade comprada (baseada na cotação atual): %.6f %s\n", valor_em_cripto, cripto);
+
+                // Confirmação da compra
+                char confirmacao;
+                printf("Deseja confirmar a compra? (S ou N): ");
+                scanf(" %c", &confirmacao);
+
+                if (confirmacao == 'S' || confirmacao == 's') {
+
+   
+                    // Atualizar saldos
+                    saldoAtual -= valor_com_taxa;
+                    if (opcao == 1) saldoBitcoin += valor_em_cripto;
+                    else if (opcao == 2) saldoEth += valor_em_cripto;
+                    else if (opcao == 3) saldoRipple += valor_em_cripto;
+                                     // Registro da venda no extrato
+                    FILE *extrato = fopen("extrato.txt", "a");
+                    if (extrato != NULL) {
+                        fprintf(extrato, "CPF: %s - COMPROU: R$%.2f %s\n", cpf_logado, saldoAtual, cripto);
+                        fclose(extrato);
+                    } else {
+                        printf("Erro ao abrir o arquivo extrato.txt!\n");
+                    }
+
+                    printf("Compra realizada com sucesso!\n");
+                    compra_realizada = 1;  // Marca que a compra foi feita
+                } else {
+                    printf("Compra cancelada.\n");
+                }
+            } else {
+                printf("Saldo insuficiente para realizar a compra!\n");
+            }
+
+            // Mesmo que a compra não seja realizada, copiar os dados para o arquivo temporário
+            fprintf(temp, "CPF: %s\t SENHA: %s\t REAL: %.2f\t BITCOIN: %.6f\t ETHEREUM: %.6f\t RIPPLE: %.6f\n", 
+                    cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+        } else {
+            // Copiar os dados de outros usuários sem alteração
+            fputs(linha, temp);
+        }
+    }
+
+    if (!encontrado) {
+        printf("CPF ou senha incorretos.\n");
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+
+    // Se a compra foi confirmada e realizada com sucesso, atualizar o arquivo
+    if (compra_realizada) {
+        remove("usuarios.txt");
+        rename("temp.txt", "usuarios.txt");
+    } else {
+        // Se a compra não foi realizada, remover o arquivo temporário
+        remove("temp.txt");
+    }
+}
+
+// Função para vender criptomoedas
+void venderCripto() {
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+
+    char linha[200];
+    float quantidade_venda;
+    float taxa;
+    float taxa_venda_bitcoin = 0.03;   // 3% de taxa para Bitcoin
+    float taxa_venda_ethereum = 0.02;  // 2% de taxa para Ethereum
+    float taxa_venda_ripple = 0.01;    // 1% de taxa para Ripple
+    int opcao;
+    char cripto[20];
+    int encontrado = 0;
+    float saldoAtual, saldoBitcoin, saldoEth, saldoRipple;
+    char cpf_logado[20];  
+    char senha_logada[20];
+    int venda_realizada = 0;  // Para controlar se a venda foi feita ou não
+
+    if (arquivo == NULL || temp == NULL) {
+        printf("Erro ao abrir os arquivos!\n");
+        return;
+    }
+
+    printf("Digite o numero da criptomoeda que deseja vender: \n");
+    printf("1 - Bitcoin\t 2 - Ethereum\t 3 - Ripple\n");
+    scanf("%d", &opcao);
+
+    if (opcao == 1) {
+        strcpy(cripto, "Bitcoin");
+        taxa = taxa_venda_bitcoin;
+    } else if (opcao == 2) {
+        strcpy(cripto, "Ethereum");
+        taxa = taxa_venda_ethereum;
+    } else if (opcao == 3) {
+        strcpy(cripto, "Ripple");
+        taxa = taxa_venda_ripple;
+    } else {
+        printf("Opcao invalida!\n");
+        fclose(arquivo);
+        fclose(temp);
+        return;
+    }
+
+    printf("Digite a quantidade de %s que deseja vender: \n", cripto);
+    scanf("%f", &quantidade_venda);
+
+    // Pedir CPF e senha para validação
+    printf("Digite seu CPF: ");
+    scanf("%s", cpf_logado);
+    printf("Digite sua senha para confirmar a venda: ");
+    scanf("%s", senha_logada);
+
+    // Busca pelo usuário no arquivo
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        char cpfArquivo[20], senhaArquivo[50];
+
+        sscanf(linha, "CPF: %s SENHA: %s REAL: %f BITCOIN: %f ETHEREUM: %f RIPPLE: %f", 
+               cpfArquivo, senhaArquivo, &saldoAtual, &saldoBitcoin, &saldoEth, &saldoRipple);
+        senhaArquivo[strcspn(senhaArquivo, "\r\n")] = 0; // Remover quebra de linha da senha
+
+        // Verificar CPF e senha
+        if (strcmp(cpf_logado, cpfArquivo) == 0 && strcmp(senha_logada, senhaArquivo) == 0) {
+            encontrado = 1;
+
+            float cotacao_selecionada;
+            if (opcao == 1) cotacao_selecionada = cotacao_bitcoin;
+            else if (opcao == 2) cotacao_selecionada = cotacao_ethereum;
+            else cotacao_selecionada = cotacao_ripple;
+
+            // Verificar se o saldo de criptomoedas é suficiente para a venda
+            if ((opcao == 1 && saldoBitcoin >= quantidade_venda) || 
+                (opcao == 2 && saldoEth >= quantidade_venda) || 
+                (opcao == 3 && saldoRipple >= quantidade_venda)) {
+
+                // Valor em reais que o usuário receberá pela venda, descontando a taxa
+                float valor_venda = quantidade_venda * cotacao_selecionada;
+                float valor_com_taxa = valor_venda - (valor_venda * taxa);  // Valor final após taxa
+
+                // Exibir resumo da venda
+                printf("Resumo da venda:\n");
+                printf("Criptomoeda: %s\n", cripto);
+                printf("Quantidade vendida: %.6f %s\n", quantidade_venda, cripto);
+                printf("Valor da venda (sem taxa): R$%.2f\n", valor_venda);
+                printf("Taxa: R$%.2f\n", valor_venda * taxa);
+                printf("Valor final (após taxa): R$%.2f\n", valor_com_taxa);
+
+                // Confirmação da venda
+                char confirmacao;
+                printf("Deseja confirmar a venda? (S ou N): ");
+                scanf(" %c", &confirmacao);
+
+                if (confirmacao == 'S' || confirmacao == 's') {
+                    // Atualizar saldos
+                    saldoAtual += valor_com_taxa;
+                    if (opcao == 1) saldoBitcoin -= quantidade_venda;
+                    else if (opcao == 2) saldoEth -= quantidade_venda;
+                    else if (opcao == 3) saldoRipple -= quantidade_venda;
+
+                    printf("Venda realizada com sucesso!\n");
+                    venda_realizada = 1;  // Marca que a venda foi feita
+
+                    // Registro da venda no extrato
+                    FILE *extrato = fopen("extrato.txt", "a");
+                    if (extrato != NULL) {
+                        fprintf(extrato, "CPF: %s - VENDEU: R$%.2f %s\n", cpf_logado, valor_venda, cripto);
+                        fclose(extrato);
+                    } else {
+                        printf("Erro ao abrir o arquivo extrato.txt!\n");
+                    }
+                } else {
+                    printf("Venda cancelada.\n");
+                }
+            } else {
+                printf("Saldo insuficiente de %s para realizar a venda!\n", cripto);
+            }
+
+            // Mesmo que a venda não seja realizada, copiar os dados para o arquivo temporário
+            fprintf(temp, "CPF: %s\t SENHA: %s\t REAL: %.2f\t BITCOIN: %.6f\t ETHEREUM: %.6f\t RIPPLE: %.6f\n", 
+                    cpfArquivo, senhaArquivo, saldoAtual, saldoBitcoin, saldoEth, saldoRipple);
+        } else {
+            // Copiar os dados de outros usuários sem alteração
+            fputs(linha, temp);
+        }
+    }
+
+    if (!encontrado) {
+        printf("CPF ou senha incorretos.\n");
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+
+    // Se a venda foi confirmada e realizada com sucesso, atualizar o arquivo
+    if (venda_realizada) {
+        remove("usuarios.txt");
+        rename("temp.txt", "usuarios.txt");
+    } else {
+        // Se a venda não foi realizada, remover o arquivo temporário
+        remove("temp.txt");
+    }
+}
+
+
+//Função principal
 int main() {
     char cpf[20]; 
     char senha[50];
     int opcao, cadastrosExistentes;
 
-    while (!sair) {  // Loop principal que reinicia em caso de erro
+    while (!sair) {
         cadastrosExistentes = ContarQuantCadastros();
         printf("Bem-vindo ao FEINANCE!\n");
-        printf("Digite 1 para logar ou 2 para cadastrar um novo usuário (ou 0 para sair): ");
+        printf("Digite 1 para logar ou 2 para cadastrar um novo usuario (ou 0 para sair): ");
         scanf("%d", &opcao);
         getchar(); 
 
         if (opcao == 0) {
             printf("Saindo do sistema.\n");
             sair = 1;
-            break;  // Encerra o programa
+            break;
         }
 
         if (opcao == 1) {
@@ -166,7 +705,7 @@ int main() {
                 }
 
                 if (!VarVerificarCPFnumero(cpf)) {
-                    printf("CPF inválido! Digite apenas numeros.\n");
+                    printf("CPF invalido! Digite apenas numeros.\n");
                     continue; 
                 }
 
@@ -176,9 +715,10 @@ int main() {
 
                 if (verificarLogin(cpf, senha)) {
                     printf("Login bem-sucedido! Bem-vindo!\n");
-                    menuPrincipal(); // Chama o menu principal
+                    strcpy(cpf_logado, cpf); // Armazena o CPF logado
+                    menuPrincipal();
                     if (sair) {
-                        break; // Sai do loop principal se sair foi definido
+                        break;
                     }
                 } else {
                     printf("CPF ou senha incorretos. Tente novamente.\n");
@@ -188,7 +728,7 @@ int main() {
         } else if (opcao == 2) {
             // Cadastro
             if (cadastrosExistentes >= LIMITE_CADASTROS) {
-                printf("O arquivo já contem o limite de %d cadastros.\n", LIMITE_CADASTROS);
+                printf("O arquivo ja contem o limite de %d cadastros.\n", LIMITE_CADASTROS);
                 continue; 
             }
 
@@ -198,13 +738,12 @@ int main() {
                 cpf[strcspn(cpf, "\n")] = '\0';  
 
                 if (!VarVerificarCPFnumero(cpf)) {
-                    printf("CPF inválido! Digite apenas numeros.\n");
-                    continue;  // Volta para o inicio do loop de cadastro
+                    printf("CPF invalido! Digite apenas numeros.\n");
+                    continue; 
                 }
 
-                // Verifica se o CPF ja foi cadastrado
                 if (verificarCPF(cpf)) {
-                    printf("CPF já cadastrado! Tente outro CPF ou faça login.\n");
+                    printf("CPF ja cadastrado! Tente outro CPF ou faça login.\n");
                 } else {
                     printf("Digite a senha: ");
                     fgets(senha, sizeof(senha), stdin);
@@ -215,16 +754,16 @@ int main() {
                     printf("Bem-vindo ao FEINANCE!\n");
                     menuPrincipal();
                     if (sair) {
-                        break; //Finalizado tudo se o sair for igual a 1
+                        break; // Finaliza tudo se o sair for igual a 1
                     }
                     break;
                 }
             }
 
         } else {
-            printf("Opção inválida! Tente novamente.\n");
+            printf("Opcao invalida! Tente novamente.\n");
         }
     }
 
-    return 0;
+    return 0; //FAZER COMPRA, VENDA E TAXAS DAS CRIPTOMOEDAS
 }
