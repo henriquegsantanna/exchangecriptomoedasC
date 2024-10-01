@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define LIMITE_CADASTROS 10
 #define MAX_LINE 256
@@ -154,7 +155,13 @@ void adicionar_saldo() {
                 cpfArquivo, senhaArquivo, saldoAtual, bitcoinArquivo, ethArquivo, rippleArquivo);
                 FILE *extrato = fopen("extrato.txt", "a");
                 if (extrato != NULL) {
-                    fprintf(extrato, "CPF: %s - DEPOSITOU: R$%.2f\n", cpf_logado, valor);
+                    time_t agora;
+                    struct tm *tm_info;
+                    char dataHora[20];
+                    time(&agora);
+                    tm_info = localtime(&agora);
+                    strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
+                    fprintf(extrato, "CPF: %s - DATA/HORA: %s - DEPOSITOU: R$%.2f\n", cpf_logado, dataHora, valor);
                     fclose(extrato);
                     } else {
                         printf("Erro ao abrir o arquivo!\n");
@@ -297,15 +304,15 @@ void sacar_saldo() {
 
     // Consulta o saldo atual do usuário com base no CPF e senha digitados
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        char cpfArquivo[20], senhaArquivo[50];
-
-        sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-
-        // Verifica se o CPF e a senha estão corretos
-        if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
-            encontrado = 1;
-            break;
-        }
+            char cpfArquivo[20], senhaArquivo[50];
+        
+            sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
+            
+            // Verifica se o CPF e a senha estão corretos
+            if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
+                encontrado = 1;
+                break;
+            }
     }
 
     if (!encontrado) {
@@ -314,6 +321,7 @@ void sacar_saldo() {
         fclose(temp);
         return;
     }
+
 
     // Loop para solicitar um valor válido para saque
     do {
@@ -361,7 +369,13 @@ void sacar_saldo() {
     // Registra o saque no extrato
     FILE *extrato = fopen("extrato.txt", "a");
     if (extrato != NULL) {
-        fprintf(extrato, "CPF: %s - SACOU: R$%.2f\n", cpfInput, valor);
+        time_t agora;
+        struct tm *tm_info;
+        char dataHora[20];
+        time(&agora);
+        tm_info = localtime(&agora);
+        strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
+        fprintf(extrato, "CPF: %s - DATA/HORA: %s - SACOU: R$%.2f\n", cpfInput, dataHora, valor);
         fclose(extrato);
     } else {
         printf("Erro ao abrir o arquivo extrato.txt!\n");
@@ -501,7 +515,13 @@ void comprarCripto() {
                                      // Registro da venda no extrato
                     FILE *extrato = fopen("extrato.txt", "a");
                     if (extrato != NULL) {
-                        fprintf(extrato, "CPF: %s - COMPROU: R$%.2f %s\n", cpf_logado, saldoAtual, cripto);
+                        time_t agora;
+                        struct tm *tm_info;
+                        char dataHora[20];
+                        time(&agora);
+                        tm_info = localtime(&agora);
+                        strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
+                        fprintf(extrato, "CPF: %s - DATA/HORA: %s - COMPROU: R$%.2f %s\n", cpf_logado, dataHora, saldoAtual, cripto);
                         fclose(extrato);
                     } else {
                         printf("Erro ao abrir o arquivo!\n");
@@ -646,7 +666,13 @@ void venderCripto() {
                     // Registro da venda no extrato
                     FILE *extrato = fopen("extrato.txt", "a");
                     if (extrato != NULL) {
-                        fprintf(extrato, "CPF: %s - VENDEU: R$%.2f %s\n", cpf_logado, valor_venda, cripto);
+                        time_t agora;
+                        struct tm *tm_info;
+                        char dataHora[20];
+                        time(&agora);
+                        tm_info = localtime(&agora);
+                        strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
+                        fprintf(extrato, "CPF: %s - DATA/HORA: %s - VENDEU: R$%.2f %s\n", cpf_logado, dataHora, valor_venda, cripto);
                         fclose(extrato);
                     } else {
                         printf("Erro ao abrir o arquivo!\n");
