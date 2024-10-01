@@ -159,6 +159,7 @@ void adicionar_saldo() {
                     struct tm *tm_info;
                     char dataHora[20];
                     time(&agora);
+                    agora -= 3 * 3600;
                     tm_info = localtime(&agora);
                     strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
                     fprintf(extrato, "CPF: %s - DATA/HORA: %s - DEPOSITOU: R$%.2f\n", cpf_logado, dataHora, valor);
@@ -305,9 +306,9 @@ void sacar_saldo() {
     // Consulta o saldo atual do usuário com base no CPF e senha digitados
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
             char cpfArquivo[20], senhaArquivo[50];
-        
+
             sscanf(linha, "CPF: %s SENHA: %s REAL: %f", cpfArquivo, senhaArquivo, &saldoAtual);
-            
+
             // Verifica se o CPF e a senha estão corretos
             if (strcmp(cpfInput, cpfArquivo) == 0 && strcmp(senhaInput, senhaArquivo) == 0) {
                 encontrado = 1;
@@ -373,6 +374,7 @@ void sacar_saldo() {
         struct tm *tm_info;
         char dataHora[20];
         time(&agora);
+        agora -= 3 * 3600;
         tm_info = localtime(&agora);
         strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
         fprintf(extrato, "CPF: %s - DATA/HORA: %s - SACOU: R$%.2f\n", cpfInput, dataHora, valor);
@@ -506,7 +508,7 @@ void comprarCripto() {
 
                 if (confirmacao == 'S' || confirmacao == 's') {
 
-   
+
                     // Atualizar saldos
                     saldoAtual -= valor_com_taxa;
                     if (opcao == 1) saldoBitcoin += valor_em_cripto;
@@ -519,6 +521,7 @@ void comprarCripto() {
                         struct tm *tm_info;
                         char dataHora[20];
                         time(&agora);
+                        agora -= 3 * 3600;
                         tm_info = localtime(&agora);
                         strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
                         fprintf(extrato, "CPF: %s - DATA/HORA: %s - COMPROU: R$%.2f %s\n", cpf_logado, dataHora, saldoAtual, cripto);
@@ -670,6 +673,7 @@ void venderCripto() {
                         struct tm *tm_info;
                         char dataHora[20];
                         time(&agora);
+                        agora -= 3 * 3600;
                         tm_info = localtime(&agora);
                         strftime(dataHora, sizeof(dataHora), "%d/%m/%Y %H:%M:%S", tm_info);
                         fprintf(extrato, "CPF: %s - DATA/HORA: %s - VENDEU: R$%.2f %s\n", cpf_logado, dataHora, valor_venda, cripto);
